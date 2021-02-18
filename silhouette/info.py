@@ -1,5 +1,4 @@
-from mathutils import Vector, Matrix
-from bpy.types import Object
+
 
 '''
 TRANSFORMATION MATRIX:
@@ -131,19 +130,13 @@ Projection Transform:
 '''
 
 '''
-ORTHOGRAPHIC OVER A CUBE OF 1x1x1: (0, 0, 0) - FRONT
+_______________________________________________________________________
 
-Cube Dimensions :       1,      1,      1
-Cube Location   :       0,      0,      0
+ORTHOGRAPHIC OVER A CUBE OF 1x1x1: (0, 0, 0) - FRONT
 
 Camera Location :       0,   -1.6,      0
 Camera Rotation :      90,      0,      0
 Camera Direction:       0,      1,      0
-
-[right.x, up.x, forward.x, position.x]
-[] .y
-[] .z
-[0, 0, 0, 1]
 
 MATRIX WORLD: <Matrix 4x4
             (1.0000,  0.0000,  0.0000,  0.0000) # 1 normalized direction.x
@@ -187,7 +180,7 @@ ORTHOGRAPHIC OVER A CUBE OF 1x1x1: (0, 0, 0) - RIGHT
 
 Camera Location :     1.6,      0,      0
 Camera Rotation :      90,      0,     90
-Camera Direction:       1,      0,      0
+Camera Direction:      -1,      0,      0
 
 # CAMERA SCALE 1.0:
 MATRIX WORLD:
@@ -195,6 +188,10 @@ MATRIX WORLD:
     ( 1.0000, 0.0000,  0.0000,  0.0000)
     ( 0.0000, 1.0000,  0.0000,  0.0000)
     ( 0.0000, 0.0000,  0.0000,  1.0000)
+
+    - Direction: [right.y, up.z, forward.x]
+    - Position : [-1.6, 0.0, 0.0]
+
 CALC MATRIX CAMERA:
     (2.0000, 0.0000,  0.0000,  0.0000)
     (0.0000, 2.0000,  0.0000,  0.0000)
@@ -212,6 +209,30 @@ CALC MATRIX CAMERA:
     (0.0000, 2.0000,  0.0000,  0.0000)
     (0.0000, 0.0000, -0.0020, -1.0002)
     (0.0000, 0.0000,  0.0000,  1.0000)
+
+_______________________________________________________________________
+
+ORTHOGRAPHIC OVER A CUBE OF 1x1x1: (0, 0, 0) - 3/4 FRONT-RIGHT
+
+Camera Location :  0.7778,-0.7778,      0 # 45º (grado sexagesimal) => rad(45º) = 0,7853981634
+Camera Rotation :      90,      0,     45  
+Camera Direction:    -0.5,    0.5,      0
+
+MATRIX WORLD:
+    (0.7071,  0.0000,  0.7071,  0.7778) # 45º (grado centesimal ) => rad(45g) = 0,706858
+    (0.7071,  0.0000, -0.7071, -0.7778)
+    (0.0000,  1.0000,  0.0000,  0.0000)
+    (0.0000,  0.0000,  0.0000,  1.0000)
+
+CALC MATRIX CAMERA:
+    (2.0000, 0.0000,  0.0000,  0.0000)
+    (0.0000, 2.0000,  0.0000,  0.0000)
+    (0.0000, 0.0000, -0.0020, -1.0002)
+    (0.0000, 0.0000,  0.0000,  1.0000)
+
+
+
+# SIZES ###############################################################
 _______________________________________________________________________
 
 ORTHOGRAPHIC OVER A CUBE OF 2x1x1: (0, 0, 0) - FRONT
@@ -274,12 +295,104 @@ _______________________________________________________________________
 
 '''
 
-def get_matrices(target: Object, n_direction: Vector) -> (Matrix, Matrix):
+'''
+bool BKE_camera_view_frame_fit_to_coords(const Depsgraph *depsgraph,
+                                         const float (*cos)[3],
+                                         int num_cos,
+                                         Object *camera_ob,
+                                         float r_co[3],
+                                         float *r_scale)
+{
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+  CameraParams params;
+  CameraViewFrameData data_cb;
+
+  /* just in case */
+  *r_scale = 1.0f;
+
+  camera_frame_fit_data_init(scene_eval, camera_ob_eval, &params, &data_cb);
+
+  /* run callback on all given coordinates */
+  while (num_cos--) {
+    camera_to_frame_view_cb(cos[num_cos], &data_cb);
+  }
+
+  return camera_frame_fit_calc_from_data(&params, &data_cb, r_co, r_scale);
+}
+'''
+
+'''
+CAMERA_VIEWFRAME_NUM_PLANES = 4
+
+class CameraViewFrameData():
+    def __init__(self):
+        self.plane_tx  = Matrix.Identity(CAMERA_VIEWFRAME_NUM_PLANES) # 4x4 - float # 4 planes
+        self.normal_tx = Matrix.Identity(CAMERA_VIEWFRAME_NUM_PLANES) # 4x3 - float #
+        self.dist_vals_sq = Vector.Fill(CAMERA_VIEWFRAME_NUM_PLANES)  # float # distance squared (signed)
+        self.tot = 0 # int
+
+        # Ortho camera only.
+        self.is_ortho = True # bool
+        self.camera_no = Vector.Fill(3) # float
+        self.dist_to_cam = 0.0 # float
+
+        # Not used by callbacks...
+        self.camera_rotmat = Matrix.Identity(3) # 3x3 - float
+
+
+def camera_frame_fit_calc_from_data(data, r_scale):
     pass
 
-    '''
-    GPU_matrix_push_projection();
-    GPU_matrix_identity_set();
-    GPU_matrix_push();
-    GPU_matrix_identity_set();
-    '''
+def camera_to_frame_view(co: Vector, data):
+    pass
+
+def camera_view_frame_fit_to_coords(*coords):
+    # Get depsgraph evaluated.
+    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph)
+    Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob)
+    
+    # Initialization.
+    data = CameraViewFrameData()
+    
+    r_scale = 1.0
+
+    camera_frame_fit_data_init(scene_eval, camera_ob_eval, &params, &data_cb)
+    
+    # Run callback on all given coordinates.
+    for co in coords:
+        camera_to_frame_view(co, data)
+    
+    return camera_frame_fit_calc_from_data(&params, &data_cb, r_co, r_scale)
+'''
+'''
+mat = Matrix.OrthoProjection('XZ', 4)
+>>> mat
+Matrix(((1.0, 0.0, 0.0, 0.0),
+        (0.0, 0.0, 0.0, 0.0),
+        (0.0, 0.0, 1.0, 0.0),
+        (0.0, 0.0, 0.0, 1.0)))
+'''
+'''
+* FRONT
+MATRIX WORLD: <Matrix 4x4
+            (1.0000,  0.0000,  0.0000,  0.0000) # 1 normalized direction.x
+            (0.0000,  0.0000, -1.0000, -1.6000) # -1.6 Translation.y
+            (0.0000,  1.0000,  0.0000,  0.0000)
+            (0.0000,  0.0000,  0.0000,  1.0000)>
+* LEFT
+MATRIX WORLD: <Matrix 4x4
+            ( 0.0000,  0.0000, -1.0000, -1.6000) # -1.6 Translation.x
+            (-1.0000,  0.0000,  0.0000,  0.0000)
+            ( 0.0000,  1.0000,  0.0000,  0.0000)
+            ( 0.0000,  0.0000,  0.0000,  1.0000)>
+
+    - Direction: [-right.y, up.z, -forward.x]
+    - Position : [-1.6, 0.0, 0.0]
+* RIGHT
+MATRIX WORLD:
+    ( 0.0000, 0.0000,  1.0000,  1.6000)
+    ( 1.0000, 0.0000,  0.0000,  0.0000)
+    ( 0.0000, 1.0000,  0.0000,  0.0000)
+    ( 0.0000, 0.0000,  0.0000,  1.0000)
+'''
