@@ -133,28 +133,6 @@ def get_rot_matrix_from_view_preset(view: str = 'FRONT') -> Matrix:
 
 
 def get_view_matrix_from_view_preset(target: Object, view: str = 'FRONT') -> Matrix:
-    '''
-    origin = target.location
-
-    depth_dir = Vector(getattr(BOUNDBOX_NORM, view, BOUNDBOX_NORM.FRONT)())
-
-    bbox_pts = get_bbox_points_from_view(target, view, 1)
-    ref_point = Vector(bbox_pts[0])
-
-    v_trans = Vector((0, 0, 0))
-    for i in range(0, 3):
-        v_trans[i] = -origin[i] + depth_dir[i] * ref_point[i]
-    '''
-
-    '''
-    A, B = get_bbox_points_from_view(target, view, 2)
-    v_trans = - target.location + (Vector(A)+Vector(B))/2 
-
-    depth_dir = Vector(getattr(BOUNDBOX_NORM, view, BOUNDBOX_NORM.FRONT)())
-    for i in range(0, 3):
-        v_trans[i] += depth_dir[i] * A[i] * 2.25 # this value is for the offset in normal depth view dir so that object and outlien are well visible.
-    '''
-
     A, B = get_bbox_points_from_view(target, view, 2)
     v_trans = -1*(Matrix.Translation((Vector(A)+Vector(B))/2)@target.matrix_world).to_translation()
 
