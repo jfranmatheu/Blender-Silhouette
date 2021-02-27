@@ -6,6 +6,7 @@ from gpu_extras.presets import draw_texture_2d
 from gpu.types import GPUOffScreen
 from gpu_extras.batch import batch_for_shader
 import bpy
+from time import time as get_time
 from bgl import (
     glEnable, glDisable, GL_BLEND, GL_DEPTH_TEST,
     glBlendFunc, GL_SRC_COLOR, GL_ONE_MINUS_CONSTANT_ALPHA,
@@ -16,6 +17,7 @@ from functools import partial
 
 from . matrix import get_magic_matrices_from_view_and_fixed_dimensions
 from . prefs import get_prefs
+from . utils import point_inside_rect
 
 
 class VIEW3D_GT_silhouette(Gizmo):
@@ -46,7 +48,9 @@ class VIEW3D_GT_silhouette(Gizmo):
         print("GZ: SETUP")
         self.target = None
         self.target_location = Vector((0, 0, 0))
+        self.target_rotation = Vector((0, 0, 0))
         self.target_dimensions = Vector((0, 0, 0))
+        #self.target_scale = Vector((1, 1, 1)) # Used for multi-objects as collections...
 
         self.position = (50, 50)
         self.width  = 256
@@ -66,6 +70,10 @@ class VIEW3D_GT_silhouette(Gizmo):
         self.target_type = self.settings.target_type
         self.act_ob = context.active_object
 
+        self.mode = context.mode
+        self.time = get_time()
+        self.sculpt_update_interval = 5.0
+
         self.init_offscreen()
         self.init_graphics()
 
@@ -78,7 +86,7 @@ class VIEW3D_GT_silhouette(Gizmo):
         #print("\t-", self.draw_handler)
 
     def refresh(self, context):
-        print("GZ: REFRESH")
+        #print("GZ: REFRESH")
         # Ensure that draw handler is initialized. (enabling/disabling/enabling BUG)
         if self.style.dirty:
             self.update_shader()
@@ -91,7 +99,8 @@ class VIEW3D_GT_silhouette(Gizmo):
         return Vector((evt.mouse_region_x, evt.mouse_region_y))
 
     def test_select(self, ctx: Context, loc: (int, int)) -> int:
-        return -1
+        #print("TEST SELECT...")
+        return 1 if point_inside_rect(*loc, *self.position, self.width, self.height) else -1
 
     def invoke(self, ctx: Context, evt: Event) -> set:
         print("GZ: INVOKE", evt.type, evt.value)
@@ -117,7 +126,7 @@ class VIEW3D_GT_silhouette(Gizmo):
         self.repaint() 
 
     def repaint(self) -> None:
-        print("GZ: Repaint")
+        #print("GZ: Repaint")
         self.update_shader()
         self.update_batch()
 
@@ -146,7 +155,7 @@ class VIEW3D_GT_silhouette(Gizmo):
         #print("\t-", self.offscreen)
 
     def refresh_region(self, ctx: Context) -> None:
-        print("GZ: Refresh Region")
+        #print("GZ: Refresh Region")
         if not ctx.region:
             print("ERROR: AttributeError: 'NoneType' object has no attribute 'tag_redraw'")
             return
@@ -183,6 +192,7 @@ class VIEW3D_GT_silhouette(Gizmo):
                     if self.settings.target_type == 'ACTIVE_OBJECT':
                         self.update_targets(context)
                     # Else: Fixed Object. NO NEED TO DO ANYTHING...
+                    #print("FIXED OBJECT")
                 
                 elif self.settings.target_type == 'SELECTED_OBJECTS':
                     self.update_targets(context)
@@ -220,6 +230,51 @@ class VIEW3D_GT_silhouette(Gizmo):
                     elif self.target_dimensions != to_check_ob.dimensions:
                         self.redraw_silhouette(context)
                         self.target_dimensions = to_check_ob.dimensions.copy()
+                    elif self.check_rotation_change(to_check_ob):
+                        self.redraw_silhouette(context)
+                    
+                    # BUG: For some reason scale!=1,1,1 doesn't affect with multiple objects matrix algorithm...
+                    #elif self.multi_object and self.target_scale != to_check_ob.scale:
+                    #    self.target_scale = to_check_ob.scale.copy()
+                    #    self.redraw_silhouette(context)
+
+                    # NOTE: for now we need to update on edit mode every time cause mesh it's going to be edited all time...
+                    ## WORKAROUND: for future would be to use handlers depsgraph in some way...
+                    elif context.mode == 'EDIT_MESH':
+                        ob_id = to_check_ob.data
+                        print(id(to_check_ob), to_check_ob)
+                        print(id(ob_id), ob_id)
+                        depsgraph = context.evaluated_depsgraph_get()
+                        print("EDIT MODE: DEPSGRAPH CHECK!")
+                        for update in depsgraph.updates:
+                            print(update.id)
+                            if ob_id is update.id:
+                                print("EDIT MODE: DEPSGRAPH UPDATE ID MATCH!")
+                                if update.is_updated_geometry() or update.is_updated_transform():
+                                    print("EDIT MODE: DEPSGRAPH UPDATE GEOMETRY OR TRANSFORM!")
+                                    self.redraw_silhouette(context)
+                    elif context.mode == 'SCULPT':
+                        if self.settings.use_sculpt_auto_update:
+                            if get_time() - self.time > self.sculpt_update_interval:
+                                #to_check_ob.data.vertices.update() # OK...
+                                #to_check_ob.data.update_tag() # OK...
+                                #to_check_ob.update_tag(refresh={'DATA'}) #OK...
+                                ##to_check_ob.data.update_gpu_tag() # NOPE
+                                to_check_ob.data.remesh_voxel_size *= 1
+                                self.redraw_silhouette(context)
+                                self.time = get_time()
+        
+        elif context.mode != self.mode:
+            if self.mode == 'SCULPT':
+                self.redraw_silhouette(context)
+                self.time = get_time()
+            self.mode = context.mode
+
+
+        #icon = context.active_object.material_slots[0].material.preview.icon_id #self.target[0].preview.icon_id
+        #glBindTexture(GL_TEXTURE_2D, icon)
+        #draw_texture_2d(icon, Vector(self.position)+Vector((self.width, 0)), self.width, self.height)
+
 
         if not style.show_in_front:
             glEnable(GL_DEPTH_TEST)
@@ -237,6 +292,7 @@ class VIEW3D_GT_silhouette(Gizmo):
         glDisable(GL_BLEND)
 
         #print("Drawing Offscreen... END")
+        
 
 
     def update_targets(self, context, redraw_on_update: bool = True):
@@ -307,3 +363,16 @@ class VIEW3D_GT_silhouette(Gizmo):
         
         self.settings.dirty = False
         print("REDRAW SILHOUETTE")
+
+    def check_rotation_change(self, to_check_ob):
+        rot_mode = to_check_ob.rotation_mode
+        if rot_mode == 'QUATERNION' and self.target_rotation != to_check_ob.rotation_euler:
+            self.target_rotation = to_check_ob.rotation_quaternion # NOTE: No need to copy...
+            return True
+        elif rot_mode == 'AXIS_ANGLE' and self.target_rotation != to_check_ob.rotation_axis_angle:
+            self.target_rotation = to_check_ob.rotation_axis_angle # NOTE: No need to copy...
+            return True
+        elif self.target_rotation != to_check_ob.rotation_euler:
+            self.target_rotation = to_check_ob.rotation_euler.copy() # NOTE: Needs to copy...
+            return True
+        return False

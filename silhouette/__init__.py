@@ -27,15 +27,20 @@ from . import auto_load
 auto_load.init()
 
 def register():
+    from bpy.types import Scene as scn#, SpaceView3D
+    from bpy.props import PointerProperty as Pointer, BoolProperty
+    from . data import SILHOUETTE_SETTINGS
+
+    #SpaceView3D.silhouette_enabled = BoolProperty(default=False, name="Enable Silhouette", description="Toggle silhouette overlay in 3d viewport")
+
     auto_load.register()
     
-    from bpy.types import Scene as scn
-    from bpy.props import PointerProperty as Pointer
-    from . data import SILHOUETTE_SETTINGS
     scn.silhouette = Pointer(type=SILHOUETTE_SETTINGS)
+    
 
 def unregister():
     auto_load.unregister()
     
-    from bpy.types import Scene as scn
+    from bpy.types import Scene as scn#, SpaceView3D
     del scn.silhouette
+    #del SpaceView3D.silhouette_enabled

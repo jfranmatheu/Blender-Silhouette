@@ -35,11 +35,11 @@ class SilhouetteAddonPreferences(AddonPreferences):
         subcol.prop(style, "use_transparency")
         subcol.prop(style, "show_in_front")
         
-        subcol.separator()
+        #subcol.separator()
         
-        subcol.prop(style, "use_flat_style")
-        subcol.prop(style, "show_shadows")
-        subcol.prop(style, "show_cavity")
+        #subcol.prop(style, "use_flat_style")
+        #subcol.prop(style, "show_shadows")
+        #subcol.prop(style, "show_cavity")
         
         subcol = row.column(align=True)
         subcol.use_property_split = True

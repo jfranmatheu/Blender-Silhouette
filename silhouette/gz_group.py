@@ -6,7 +6,7 @@ class VIEW3D_GGT_silhouettes(GizmoGroup):
     bl_label = "GizmoGroup: Silhouettes"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
-    bl_options = {'PERSISTENT', 'SCALE', 'SHOW_MODAL_ALL', 'DEPTH_3D', '3D'}#, 'SELECT'} #, 'TOOL_INIT'}
+    bl_options = {'PERSISTENT', 'SCALE', 'SHOW_MODAL_ALL', 'DEPTH_3D', 'SELECT'} #, 'TOOL_INIT'}
 
     #__slots__ = ()
 
@@ -22,6 +22,7 @@ class VIEW3D_GGT_silhouettes(GizmoGroup):
         if not context.active_object:
             return False
         if not context.scene.silhouette.enabled:
+        #if not context.space_data.silhouette_enabled:
             VIEW3D_GT_silhouette.stop_draw_handler() # HACK.
             return False
         return True
@@ -58,5 +59,5 @@ class VIEW3D_GGT_silhouettes(GizmoGroup):
         self.master = gz
 
     def refresh(self, context):
-        print("GGT: Refresh")
+        #print("GGT: Refresh")
         self.master.refresh(context)

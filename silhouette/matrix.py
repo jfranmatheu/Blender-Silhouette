@@ -106,7 +106,6 @@ def get_bbox_points_from_view(target: Object, view: str = 'FRONT', num: int = 2)
     return [tuple(bbox[idx]) for idx in getattr(BOUNDBOX_IDX, view+('_%i'%num), BOUNDBOX_IDX.FRONT_1)()]
 
 
-
 def get_rot_matrix_from_view_preset(view: str = 'FRONT') -> Matrix:
     if view == 'FRONT':
         mat_rot = Matrix.Rotation(radians(-90), 4, 'X')
