@@ -16,16 +16,32 @@ class VIEW3D_PT_silhouette(Panel):
         layout = self.layout
         style = get_prefs(context).style
         settings = context.scene.silhouette
-        
-        layout.label(text="Settings")
-        layout.prop(settings, 'view_alignment')
 
+        layout.active = settings.enabled
+        
+        col = layout.column(align=True)
+
+        header = col.box()
+        header.label(text="Settings")
+
+        content = col.box()
+        content.prop(settings, 'view_alignment')
+
+        content.separator()
+
+        content.label(text="Target")
+        content.prop(settings, 'target_type', text="Type")
+        if settings.target_type == 'OBJECT':
+            content.prop(settings, 'target_object', text="")
+        elif settings.target_type == 'COLLECTION':
+            content.prop(settings, 'target_collection', text="")
+        
         layout.separator()
 
-        layout.prop(settings, 'target_type')
-        if settings.target_type == 'OBJECT':
-            layout.prop(settings, 'target_object')
-        elif settings.target_type == 'COLLECTION':
-            layout.prop(settings, 'target_collection')
-        
-        #layout.separator()
+        col = layout.column(align=True)
+
+        header = col.box()
+        header.label(text="Other Settings")
+
+        content = col.box()
+        content.prop(settings, 'use_sculpt_auto_update')
