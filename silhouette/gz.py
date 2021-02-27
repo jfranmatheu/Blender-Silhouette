@@ -64,7 +64,7 @@ class VIEW3D_GT_silhouette(Gizmo):
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
         self.settings.dirty = True # HACK. Force init update...
-        #self.view = self.settings.view_alignment
+        #self.view = self.settings.view_preset
 
         self.target = None
         self.target_type = self.settings.target_type
@@ -121,8 +121,8 @@ class VIEW3D_GT_silhouette(Gizmo):
 
     def init_graphics(self) -> None:
         print("GZ: Init Graphics")
-        from . shader import shader
-        self.shader = shader
+        from . draw.gpu_shaders import shader_silueta
+        self.shader = shader_silueta
         self.repaint() 
 
     def repaint(self) -> None:
@@ -131,8 +131,8 @@ class VIEW3D_GT_silhouette(Gizmo):
         self.update_batch()
 
     def update_batch(self) -> None:
-        from . draw import get_verts
-        self.batch = batch_for_shader(self.shader, 'TRI_FAN', { "pos" : get_verts(*self.position, self.width, self.height), "texCoord": ((0, 1), (0, 0), (1, 0), (1, 1)) },)
+        from . draw.geo import get_silu_verts
+        self.batch = batch_for_shader(self.shader, 'TRI_FAN', { "pos" : get_silu_verts(*self.position, self.width, self.height), "texCoord": ((0, 1), (0, 0), (1, 0), (1, 1)) },)
         print("\t-", self.batch)
 
     def update_shader(self) -> None:
@@ -347,7 +347,7 @@ class VIEW3D_GT_silhouette(Gizmo):
             context.view_layer,
             context.space_data,
             context.region,
-            *get_magic_matrices_from_view_and_fixed_dimensions(self.target, self.multi_object, self.settings.view_alignment, self.width, self.height)
+            *get_magic_matrices_from_view_and_fixed_dimensions(self.target, self.multi_object, self.settings.view_preset, self.width, self.height)
         )
         
         # Return to original settings.

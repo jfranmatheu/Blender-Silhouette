@@ -25,7 +25,7 @@ class VIEW3D_PT_silhouette(Panel):
         header.label(text="Settings")
 
         content = col.box()
-        content.prop(settings, 'view_alignment')
+        content.prop(settings, 'view_preset')
 
         content.separator()
 

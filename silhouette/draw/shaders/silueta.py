@@ -37,5 +37,3 @@ void main()
     fragColor.a *= alpha;
 }
 '''
-from gpu.types import GPUShader as Shader
-shader=Shader(vert_shader,frag_shader)

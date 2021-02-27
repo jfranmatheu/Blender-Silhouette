@@ -41,6 +41,14 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
     def mark_dirty(self, context):
         self.dirty = True
 
+    def select_target(self, context):
+        if not self.target_object:
+            return
+        if self.target_object.type != 'MESH':
+            self.target_object = None
+            return
+        self.mark_dirty(context)
+
     def get_target(self, context):
         target_type = self.target_type
         if target_type == 'ACTIVE_OBJECT':
@@ -71,12 +79,12 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         update=mark_dirty
     )
 
-    target_object : PointerProperty(type=Object, name="Target Object", update=mark_dirty) # TODO: make it a duynamic enum and filter mesh objects.
+    target_object : PointerProperty(type=Object, name="Target Object", update=select_target) # TODO: make it a duynamic enum and filter mesh objects.
     target_collection : PointerProperty(type=Collection, name="Target Collection", update=mark_dirty)
 
     dirty : BoolProperty(default=False)
 
-    view_alignment : EnumProperty (
+    view_preset : EnumProperty (
         items = (
             ('FRONT',   "Front",    "front view",    VIEW_FRONT),
             #('3_4_FRONT_LEFT', "3/4 Front Left", "3/4 front left view", VIEW_3_4_FRONT_LEFT),
@@ -93,8 +101,42 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         ),
         default = 'FRONT',
         name = "View",
-        description = "View alignment for silhouette",
+        description = "Preset for silhouette view",
+        update=mark_dirty
+    )
+
+    use_multi_view : BoolProperty(default=False, name="Use Multi View", description="Toggle multi view silhouettes", update=mark_dirty)
+
+    alignment : EnumProperty (
+        items=(
+            ('TOP_LEFT',        "Top-Left",     "Align silhouette to the top-left corner"),
+            ('TOP_RIGHT',       "Top-Right",    "Align silhouette to the top-right corner"),
+            ('BOTTOM_LEFT',     "Bottom-Left",  "Align silhouette to the bottom-left corner"),
+            ('BOTTOM_RIGHT',    "Bottom-Right", "Align silhouette to the bottom-right corner")
+        ), default='TOP_LEFT',
+        name = "Alignment",
+        update=mark_dirty
+    )
+
+    direction : EnumProperty (
+        items=(
+            ('HORIZONTAL',     "Horizontal",  "Align silhouettes horizontaly"),
+            ('VERTICAL',       "Vertical",    "Align silhouettes verticaly")
+        ), default='VERTICAL',
+        name = "Direction",
         update=mark_dirty
     )
 
     use_sculpt_auto_update : BoolProperty(default=False, name="Auto-Update on Sculpt Mode")
+
+    ''' Live Navigation View Settings. '''
+    live_scale : FloatProperty(default=.5, min=0.2, max=1, step=0.05)
+
+    live_alignment : EnumProperty (
+        items=(
+            ('TOP_LEFT',        "Top-Left",     "Align silhouette to the top-left corner"),
+            ('TOP_RIGHT',       "Top-Right",    "Align silhouette to the top-right corner"),
+            ('BOTTOM_LEFT',     "Bottom-Left",  "Align silhouette to the bottom-left corner"),
+            ('BOTTOM_RIGHT',    "Bottom-Right", "Align silhouette to the bottom-right corner")
+        ), default='TOP_LEFT'
+    )
