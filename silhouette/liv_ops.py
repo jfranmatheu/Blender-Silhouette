@@ -1,17 +1,19 @@
-from bpy.types import Operator, SpaceView3D
-import bpy
 from math import cos
+
+import bpy
+from bpy.types import Operator, SpaceView3D
 from mathutils import Euler, Vector
 from bgl import glEnable, glDisable, GL_DEPTH_TEST
 
-from . rt_prop_fun import update_render_textures, override
-from . rect import draw_rect
-from . text import Draw_Text_AlignCenter
-from . gl_fun import GetPixel
-from . rt_draw import Draw_Image_MoreSimple
+from . ctx import *
+from . draw.rect import draw_rect
+from . draw.text import Draw_Text_AlignCenter
+from . draw.gl_fun import GetPixel
+from . draw.image import Draw_Texture
 
-global rtlive
-rtlive = None
+
+rtlive = []
+
 
 class SILHOUETTE_OT_start_live(Operator):
     bl_idname = "silhouette.start_live"
@@ -20,56 +22,54 @@ class SILHOUETTE_OT_start_live(Operator):
 
     @classmethod
     def poll(cls, context):
-        global rtlive
-        return rtlive is not None # len(rtlive) == 0
+        if not context.active_object or context.active_object.type != 'MESH':
+            return False
+        return rtlive is not None and len(rtlive) == 0
+
 
     def execute(self, context):
         from . import DEBUG
-        global rtlive
         if rtlive:
-            bpy.ops.rt.stop_live_render_texture()
+            bpy.ops.silhouette.stop_live()
+        
+        '''
         rt = context.window_manager.render_texture.live
         rt.texid = -1 # Reset ID.
         if DEBUG:
             dummy = (rt, 'debug_buffer')
             self.finish(context, -1, dummy)
         else:
-            # OLD METHOD
-            if not rt.use_modal_to_find_id:
-                texid = rt.get_id(context)
-                self.finish(context, texid if texid is not None else 0, None)
-                return {'FINISHED'}
-            '''
-            id = rt.get_id(context)
-            if not id:
-                self.report({'ERROR'}, "Can't create the silhouette. Try using it on default sculpting workspace before reporting it.")
-                return {'FINISHED'}
-            dummy = None
-            '''
-            # NEW METHOD
-            if not context.window_manager.modal_handler_add(self):
-                return {'CANCELLED'}
-            
-            self.texid = 0
-            texid = rt.get_id(context)
-            rt.texid = texid if texid else 0
-            self.match = False
-            self.shading = {}
-            self.skip_matches = 0
-            self.x, self.y, self.w, self.h = rt.get_pos_size(context.area)
-            self.start_timer(context)
-            self.init_style(context)
-            bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
-            bpy.ops.view3d.localview()
-            bpy.ops.view3d.view_axis(type='FRONT', align_active=True)
-            context.active_object.name = "TemporalSyncCube"
-            self._handler = SpaceView3D.draw_handler_add(self.draw, (context, ), 'WINDOW', 'POST_PIXEL')
-            context.area.tag_redraw()
-            return {'RUNNING_MODAL'}
+        '''
+        if not context.window_manager.modal_handler_add(self):
+            return {'CANCELLED'}
+        
+        self.silhouette = context.scene.silhouette
+
+        self.init_mode = context.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+        self.silhouette_state = self.silhouette.enabled
+        self.silhouette.enabled = False
+        self.texid = 0
+        #texid = rt.get_id(context)
+        #rt.texid = texid if texid else 0
+        self.silhouette.live_texid = 0
+        self.match = False
+        self.shading = {}
+        self.skip_matches = 0
+        self.x, self.y, self.w, self.h = self.silhouette.get_live_pos_size(context)
+        self.start_timer(context)
+        self.init_style(context)
+        self.init_object = context.active_object
+        bpy.ops.mesh.primitive_cube_add(size=2, enter_editmode=False, align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.ops.view3d.localview()
+        bpy.ops.view3d.view_axis(type='FRONT', align_active=True)
+        context.active_object.name = "TemporalSyncCube"
+        self._handler = SpaceView3D.draw_handler_add(self.draw, (context, ), 'WINDOW', 'POST_PIXEL')
         context.area.tag_redraw()
-        return {'FINISHED'}
-    
-    
+        return {'RUNNING_MODAL'}
+
+
     def init_style(self, context):
         shading = context.space_data.shading
         
@@ -82,7 +82,7 @@ class SILHOUETTE_OT_start_live(Operator):
         shading.single_color        = [1.0, 1.0, 0.0]
         shading.background_type     = 'VIEWPORT'
         shading.background_color    = [0.0, 0.0, 0.0]
-    
+
     def backup_style(self, shading):
         # BACKUP DATA.
         self.shading['type']                = shading.type
@@ -91,7 +91,7 @@ class SILHOUETTE_OT_start_live(Operator):
         self.shading['single_color']        = shading.single_color
         self.shading['background_type']     = shading.background_type
         self.shading['background_color']    = shading.background_color
-    
+
     def restore_style(self, context):
         # RESTORE DATA.
         shading   = context.space_data.shading
@@ -102,18 +102,30 @@ class SILHOUETTE_OT_start_live(Operator):
         shading.single_color = self.shading['single_color']
         shading.background_type = self.shading['background_type']
         shading.background_color = self.shading['background_color']
-    
-    def finish(self, context, texid, dummy):
-        global rtlive
+
+    def finish(self, context):
+        from . prefs import get_prefs
         ##print("[MODAL] Finished!")
-        from . live_draw import live_draw_callback_px
+        from . liv_draw import live_draw_callback_px
         from . id_finder import IDFinder
-        rt = context.window_manager.render_texture.live
+
+        context.area.tag_redraw()
+
+        #rt = context.window_manager.render_texture.live
+        style = get_prefs(context).style
         IDFinder.reset()
         DC = DrawContext(context)
-        DC.set_handler(live_draw_callback_px, bpy.ops.rt.stop_live_render_texture, rt, texid, dummy)
-        rtlive = DC
-        context.area.tag_redraw()
+        DC.set_handler(live_draw_callback_px, bpy.ops.silhouette.stop_live, (self.silhouette, style))
+        rtlive.append(DC)
+
+        self.silhouette.enabled = self.silhouette_state
+
+        from . draw.gpu_shaders import shader_live_silueta as shader
+        shader.bind()
+        shader.uniform_float("use_transp", 1.0 if style.use_transparency else 0.0)
+        shader.uniform_float("alpha", style.opacity)
+        shader.uniform_float("co", style.color)
+        shader.uniform_float("bco", style.bg_color)
 
     def draw_overlap(self, context):
         a = context.area
@@ -127,7 +139,7 @@ class SILHOUETTE_OT_start_live(Operator):
         glDisable(GL_DEPTH_TEST)
         ##print("[MODAL-DRAW] Tex ID:", self.texid)
         x, y, w, h = self.x, self.y, self.w, self.h
-        Draw_Image_MoreSimple(self.texid, x, y, w, h)
+        Draw_Texture(self.texid, x, y, w, h)
         
         px = [ch/255 for ch in GetPixel(x+w/2-1, y+h/2-1).to_list()[0:3]]
         ##print("- Pixel:", px)
@@ -154,46 +166,56 @@ class SILHOUETTE_OT_start_live(Operator):
         glEnable(GL_DEPTH_TEST)
         
         self.draw_overlap(context)
-        
+
     def stop_draw(self):
         if hasattr(self, '_handler'):
             SpaceView3D.draw_handler_remove(self._handler, 'WINDOW')
-    
+
     def start_timer(self, context):
         self.timer = context.window_manager.event_timer_add(1/120, window=context.window)
-    
+
     def stop_timer(self, context):
         if hasattr(self, 'timer'):
             context.window_manager.event_timer_remove(self.timer)
-    
+
     def modal(self, context, event):
-        if event.type == 'TIMER':
-            context.area.tag_redraw()
-            rt = context.window_manager.render_texture.live
-            #x, y, w, h = self.x, self.y, self.w, self.h
+        #if event.type == 'TIMER':
+        context.area.tag_redraw()
+        #rt = context.window_manager.render_texture.live
+        #x, y, w, h = self.x, self.y, self.w, self.h
 
-            if self.match:
-                ##print("[MODAL] Matched!")
-                rt.texid = self.texid
-                self.restore_style(context)
-                self.finish_modal(context)
-                return {'FINISHED'}
+        if self.match:
+            ##print("[MODAL] Matched!")
+            #rt.texid = self.texid
+            self.silhouette.live_texid = self.texid
+            self.restore_style(context)
+            self.finish_modal(context)
+            return {'FINISHED'}
 
-            if self.texid > 100:
-                texid = rt.get_id(context)
-                if texid:
-                    self.texid = texid
-                self.finish_modal(context)
-                return {'FINISHED'}
+        if self.texid > 100:
+            #texid = rt.get_id(context)
+            #if texid:
+            #    self.texid = texid
+            self.texid = None
+            self.silhouette.live_texid = -1 # 0
+
+            self.finish_modal(context)
+            return {'FINISHED'}
+        #print("Hi")
         return {'RUNNING_MODAL'}
-    
+
     def finish_modal(self, context):
         self.restore_style(context)
         self.stop_timer(context)
         self.stop_draw()
-        self.finish(context, self.texid, None)
+        self.finish(context)
         bpy.ops.view3d.localview()
         bpy.ops.object.delete(use_global=True)
+        if self.init_object:
+            context.view_layer.objects.active = self.init_object
+            self.init_object.select_set(True)
+            bpy.ops.object.mode_set(mode=self.init_mode)
+        #print("*** FINISH START MODAL ***")
 
 
 class SILHOUETTE_OT_stop_live(Operator):
@@ -203,14 +225,12 @@ class SILHOUETTE_OT_stop_live(Operator):
 
     @classmethod
     def poll(cls, context):
-        global rtlive
-        return rtlive # and len(rtlive) != 0
+        return rtlive and len(rtlive) != 0
 
     def execute(self, context):
-        global rtlive
-        #for rtl in rtlive:
-        #    rtl.stop()
-        rtlive.stop()
-        rtlive.clear()
+        #global rtlive
         context.area.tag_redraw()
+        for rtl in rtlive:
+            rtl.stop()
+        rtlive.clear()
         return {'FINISHED'}

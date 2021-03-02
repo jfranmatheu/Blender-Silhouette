@@ -14,3 +14,4 @@ shader_3d_color_unif = from_builtin('3D_UNIFORM_COLOR') # 3D_FLAT_COLOR # 3D_SMO
 #shader_2d_image_alpha_2 = Shader(vertex_shader, frag_shader_2)
 shader_2d_pt = Shader(POINT_VS, POINT_FS)
 shader_silueta = Shader(vert_shader, frag_shader)
+shader_live_silueta = Shader(vert_shader, live_frag_shader)

@@ -33,6 +33,8 @@ class VIEW3D_GT_silhouette(Gizmo):
             except ValueError:
                 print("ERROR: DRAW HANDLER -> ValueError: callback_remove(handler): NULL handler given, invalid or already removed")
             cls._draw_handler_instance = None
+            return True
+        return False
 
 
     def start_draw_handler(self, context = None):
@@ -241,6 +243,8 @@ class VIEW3D_GT_silhouette(Gizmo):
                     # NOTE: for now we need to update on edit mode every time cause mesh it's going to be edited all time...
                     ## WORKAROUND: for future would be to use handlers depsgraph in some way...
                     elif context.mode == 'EDIT_MESH':
+                        self.redraw_silhouette(context)
+                        '''
                         ob_id = to_check_ob.data
                         print(id(to_check_ob), to_check_ob)
                         print(id(ob_id), ob_id)
@@ -253,6 +257,7 @@ class VIEW3D_GT_silhouette(Gizmo):
                                 if update.is_updated_geometry() or update.is_updated_transform():
                                     print("EDIT MODE: DEPSGRAPH UPDATE GEOMETRY OR TRANSFORM!")
                                     self.redraw_silhouette(context)
+                        '''
                     elif context.mode == 'SCULPT':
                         if self.settings.use_sculpt_auto_update:
                             if get_time() - self.time > self.sculpt_update_interval:

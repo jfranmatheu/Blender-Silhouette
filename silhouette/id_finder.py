@@ -1,8 +1,11 @@
 from mathutils import Vector
 import bpy
 
-from . gl_fun import SetPoint, RstPoint, GetPixel
-from . imm import DiC
+from . draw.gl_fun import SetPoint, RstPoint, GetPixel
+from . draw.point import dimm_point
+
+from . draw.image import Draw_Texture
+from . draw.text import Draw_Text
 
 
 class IDFinder():
@@ -97,12 +100,10 @@ class IDFinder():
     
     @classmethod
     def draw_next(cls, ctx, a, x, y, w, h):
-        from . rt_draw import Draw_Image_MoreSimple, Draw_Text
-        
         if cls.id_data['match']:
             ##print("Matching...")
 
-            Draw_Image_MoreSimple(cls.id_data['id'], x, y, w, h)
+            Draw_Texture(cls.id_data['id'], x, y, w, h)
             
             px = [ch/255 for ch in GetPixel(x+w/2+1, y+h/2+1).to_list()[0:3]]
             ##print("- Pixel:", px)
@@ -141,22 +142,22 @@ class IDFinder():
         #for reg in a.regions:
         #    if reg.type in {'HEADER', 'TOOL_HEADER'}:
         #        off_h += reg.height/2
-        DiC(Vector((0,0)), r, co1)
-        DiC(Vector((aw-off_w*2, 0)), r, co2)
-        DiC(Vector((0, ah-off_h)), r, co3)
-        DiC(Vector((aw-off_w, ah-off_h)), r, co4)
+        dimm_point(Vector((0,0)), r, co1)
+        dimm_point(Vector((aw-off_w*2, 0)), r, co2)
+        dimm_point(Vector((0, ah-off_h)), r, co3)
+        dimm_point(Vector((aw-off_w, ah-off_h)), r, co4)
 
         # HACK to wait until next update.
         if not cls.id_data['to_check']:
             cls.id_data['to_check'] = True
-            Draw_Image_MoreSimple(cls.id_data['id'], x, y, w, h)
+            Draw_Texture(cls.id_data['id'], x, y, w, h)
             # HACK.
             cls.refresh_hack(ctx)
             return
         
         ##print("Check ID:", cls.id_data['id'])
         
-        Draw_Image_MoreSimple(cls.get_next_id(), x, y, w, h)
+        Draw_Texture(cls.get_next_id(), x, y, w, h)
         
         px1 = [ch/255 for ch in GetPixel(x+1, y+1).to_list()[0:3]]
         px2 = [ch/255 for ch in GetPixel(x+w-1, y+1).to_list()[0:3]]

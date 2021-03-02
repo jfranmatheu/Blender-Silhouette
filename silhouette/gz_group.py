@@ -23,7 +23,8 @@ class VIEW3D_GGT_silhouettes(GizmoGroup):
             return False
         if not context.scene.silhouette.enabled:
         #if not context.space_data.silhouette_enabled:
-            VIEW3D_GT_silhouette.stop_draw_handler() # HACK.
+            if VIEW3D_GT_silhouette.stop_draw_handler(): # HACK.
+                context.region.tag_redraw()
             return False
         return True
 

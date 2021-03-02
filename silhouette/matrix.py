@@ -87,7 +87,7 @@ class BOUNDBOX_PAIRPTS_DIR(Enum):
     FRONT__BOTRIGHT = ( 1, -1, -1)
     FRONT__TOPRIGHT = ( 1, -1,  1)
     
-    '''
+    ''' SQUEME
     0 : ( -1,     -1,     -1 )
     1 : ( -1,     -1,      1 )
     2 : ( -1,      1,      1 )

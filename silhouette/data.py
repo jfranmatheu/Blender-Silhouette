@@ -1,6 +1,8 @@
 from bpy.types import PropertyGroup, Object, Collection
 from bpy.props import *
 
+from . ctx import get_area_off
+
 
 VIEW_FRONT = 0
 VIEW_BACK = 1
@@ -140,3 +142,23 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
             ('BOTTOM_RIGHT',    "Bottom-Right", "Align silhouette to the bottom-right corner")
         ), default='TOP_LEFT'
     )
+
+    live_texid : IntProperty(default=-1)
+
+    def get_live_pos_size(self, context):
+        a = context.area
+        h = a.height * .5 * self.live_scale
+        w = a.width * .5 * self.live_scale
+        if self.live_alignment == 'TOP_LEFT':
+            x, y = get_area_off(a, {'TOOLS', 'TOOL_HEADER', 'HEADER'})
+            return x, y + a.height - h, w, h
+        elif self.live_alignment == 'TOP_RIGHT':
+            x, y = get_area_off(a, {'UI', 'TOOL_HEADER'})
+            return x + a.width - w, y + a.height - h, w, h
+        elif self.live_alignment == 'BOTTOM_LEFT':
+            x, y = get_area_off(a, {'TOOLS'})
+            return x, y, w, h # TODO: What if tool header position is flipped?
+        elif self.live_alignment == 'BOTTOM_RIGHT':
+            x, y = get_area_off(a, {'UI'})
+            return x + a.width - w, y, w, h
+        return 0, 0, 256, 256

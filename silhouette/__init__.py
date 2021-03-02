@@ -22,9 +22,12 @@ bl_info = {
     "category" : "Generic"
 }
 
+DEBUG = False
+
 from . import auto_load
 
 auto_load.init()
+
 
 def register():
     from bpy.types import Scene as scn#, SpaceView3D

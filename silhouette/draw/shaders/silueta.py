@@ -37,3 +37,28 @@ void main()
     fragColor.a *= alpha;
 }
 '''
+
+live_frag_shader = '''
+in vec2 texCoord_interp;
+out vec4 fragColor;
+
+uniform sampler2D i;
+uniform float alpha;
+uniform vec3 co;
+uniform vec3 bco;
+uniform float use_transp;
+
+void main()
+{
+    fragColor = texture(i, texCoord_interp);
+    
+    if (use_transp == 1.0) {
+        if (fragColor.a < .1) {
+            discard;
+        }
+    }
+
+    fragColor.rgb = mix(bco, co, fragColor.a);
+    fragColor.a = alpha;
+}
+'''
