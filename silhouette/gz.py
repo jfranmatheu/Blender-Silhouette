@@ -1,4 +1,4 @@
-from bpy.types import Gizmo, Context, Event, SpaceView3D, bpy_prop_collection, Object, Mesh
+from bpy.types import Gizmo as SILUETA, Context, Event, SpaceView3D, bpy_prop_collection, Object, Mesh
 from mathutils import Vector, Color
 import blf
 from bpy.app import timers
@@ -15,12 +15,12 @@ from bgl import (
 
 from functools import partial
 
-from . matrix import get_magic_matrices_from_view_and_fixed_dimensions
+from . matrix import get_magic_matrices_from_view_and_fixed_dimensions, get_cam_matrices, get_view_cam_matrices
 from . prefs import get_prefs
 from . utils import point_inside_rect
 
 
-class VIEW3D_GT_silhouette(Gizmo):
+class VIEW3D_GT_silhouette(SILUETA):
 
     _draw_handler_instance = None
     _offscreen_instance = None
@@ -48,11 +48,18 @@ class VIEW3D_GT_silhouette(Gizmo):
 
     def setup(self) -> None:
         print("GZ: SETUP")
+        #self.offscreen = None
+
         self.target = None
         self.target_location = Vector((0, 0, 0))
         self.target_rotation = Vector((0, 0, 0))
         self.target_dimensions = Vector((0, 0, 0))
         #self.target_scale = Vector((1, 1, 1)) # Used for multi-objects as collections...
+
+        #self.camera = None
+        self.camera_obj = None
+        #self.camera_location = Vector((0, 0, 0))
+        #self.camera_rotation = Vector((0, 0, 0))
 
         self.position = (50, 50)
         self.width  = 256
@@ -61,12 +68,22 @@ class VIEW3D_GT_silhouette(Gizmo):
         #self.init_offscreen()
         #self.init_graphics()
 
+    def update_dimensions(self, context):
+        if self.settings.is_navigation() and self.settings.use_region_dimensions:
+            scale = self.settings.scale
+            self.width = int(context.region.width * scale)
+            self.height = int(context.region.height * scale)
+        else:
+            self.width, self.height = self.settings.dimensions
+
     def init(self, context):
         print("GZ: INIT")
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
         self.settings.dirty = True # HACK. Force init update...
         #self.view = self.settings.view_preset
+
+        self.update_dimensions(context)
 
         self.target = None
         self.target_type = self.settings.target_type
@@ -153,8 +170,11 @@ class VIEW3D_GT_silhouette(Gizmo):
         if self.__class__._offscreen_instance:
             self.offscreen = self.__class__._offscreen_instance
         else:
-            self.offscreen = self.__class__._offscreen_instance = GPUOffScreen(self.width, self.height)
+            self.update_offscreen()
         #print("\t-", self.offscreen)
+
+    def update_offscreen(self):
+        self.offscreen = self.__class__._offscreen_instance = GPUOffScreen(self.width, self.height)
 
     def refresh_region(self, ctx: Context) -> None:
         #print("GZ: Refresh Region")
@@ -171,17 +191,9 @@ class VIEW3D_GT_silhouette(Gizmo):
     def draw_select(self, ctx: Context, select_id: int) -> None:
         pass
 
-    def draw_silhouette(self, context) -> None:
-        #if context.area != self.ctx_area:
-        #    return
-        #print("Drawing Offscreen...")
-        if not self.offscreen: # not target or 
-            return
-
-        context = bpy.context
-        style = self.style
-        
+    def draw_silhouette_from_view_preset(self, context):
         if self.settings.dirty:
+            self.update_dimensions(context)
             self.update_targets(context) # full update in case property of target type or target changed.
 
         elif context.active_object:
@@ -202,7 +214,7 @@ class VIEW3D_GT_silhouette(Gizmo):
                 # BUG. Should check targets first...
                 else:
                     self.update_targets(context, False)
-                    if context.active_object in self.target:
+                    if self.target and context.active_object in self.target:
                         self.redraw_silhouette(context)
             
             #''' They are the same, check position/dimensions... '''
@@ -210,7 +222,7 @@ class VIEW3D_GT_silhouette(Gizmo):
                 if isinstance(self.target, Object):
                     to_check_ob = self.target # ACTIVE_OBJECT or OBJECT (Fixed Target)
                     
-                elif context.active_object in self.target:
+                elif self.target and context.active_object in self.target:
                     to_check_ob = context.active_object
 
                     # Special case...
@@ -265,21 +277,81 @@ class VIEW3D_GT_silhouette(Gizmo):
                                 #to_check_ob.data.update_tag() # OK...
                                 #to_check_ob.update_tag(refresh={'DATA'}) #OK...
                                 ##to_check_ob.data.update_gpu_tag() # NOPE
-                                to_check_ob.data.remesh_voxel_size *= 1 #OK...
+                                to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
                                 self.redraw_silhouette(context)
                                 self.time = get_time()
-        
+
         elif context.mode != self.mode:
             if self.mode == 'SCULPT':
                 self.redraw_silhouette(context)
                 self.time = get_time()
             self.mode = context.mode
 
+    def draw_silhouette_from_view_camera(self, context, is_navigation: bool = True):
+        #if self.settings.dirty:
+        #    self.update_dimensions(context)
+        #    self.settings.dirty = False
+        
+        if not is_navigation:
+            if not self.settings.view_camera:
+                return
+    
+            if not self.camera_obj or self.settings.view_camera != self.camera_obj.data:
+                self.camera_obj = bpy.data.objects.get(self.settings.view_camera.name, None)
+                if not self.camera_obj:
+                    return
+
+        self.redraw_silhouette(context)
+
+        ''' SCULPT WORKAROUND. '''
+        if context.mode != self.mode:
+            if self.mode == 'SCULPT':
+                #self.redraw_silhouette(context)
+                self.time = get_time()
+            self.mode = context.mode
+            return
+        
+        if context.mode == 'SCULPT':
+            if self.settings.use_sculpt_auto_update:
+                if get_time() - self.time > self.sculpt_update_interval:
+                    to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
+                    #self.redraw_silhouette(context)
+                    self.time = get_time()
+
+    def draw_silhouette(self, context) -> None:
+        #if context.area != self.ctx_area:
+        #    return
+        #print("Drawing Offscreen...")
+        if not self.offscreen: # not target or 
+            return
+
+        context = bpy.context
+        style = self.style
+        view_mode = self.settings.view_mode
+
+        if self.settings.refresh_offscreen:
+            self.update_dimensions(context)
+            self.update_offscreen()
+            self.settings.refresh_offscreen = False
+            self.settings.dirty = False
+            #self.redraw_silhouette(context)
+            self.repaint()
+
+            if self.settings.is_preset():
+                self.update_targets(context) # full update in case property of target type or target changed.
+
+        elif self.settings.force_refresh:
+            self.update_targets(context)
+            self.settings.dirty = False
+
+        if view_mode == 'PRESET':
+            self.draw_silhouette_from_view_preset(context)
+        elif view_mode in {'CAMERA', 'NAV'}:
+            self.draw_silhouette_from_view_camera(context, view_mode=='NAV')
 
         #icon = context.active_object.material_slots[0].material.preview.icon_id #self.target[0].preview.icon_id
         #glBindTexture(GL_TEXTURE_2D, icon)
         #draw_texture_2d(icon, Vector(self.position)+Vector((self.width, 0)), self.width, self.height)
-
 
         if not style.show_in_front:
             glEnable(GL_DEPTH_TEST)
@@ -346,13 +418,24 @@ class VIEW3D_GT_silhouette(Gizmo):
 
         # TODO: OVERLAYS TOGGLE SHOULD BE HERE...
         scene = context.scene
+        settings = self.settings
+        if settings.is_preset():
+            mat = get_magic_matrices_from_view_and_fixed_dimensions(self.target, self.multi_object, settings.view_preset, self.width, self.height)
+        elif self.camera_obj and settings.is_camera():
+            mat = get_cam_matrices(context, self.camera_obj, self.width, self.height)
+        else:
+            #if settings.use_region_dimensions:
+            #    dims = (int(context.region.width*settings.scale), int(context.region.height*settings.scale))
+            #else:
+            dims = (self.width, self.height)
+            mat = get_view_cam_matrices(context, *dims)
 
         self.offscreen.draw_view3d(
             scene,
             context.view_layer,
             context.space_data,
             context.region,
-            *get_magic_matrices_from_view_and_fixed_dimensions(self.target, self.multi_object, self.settings.view_preset, self.width, self.height)
+            *mat
         )
         
         # Return to original settings.

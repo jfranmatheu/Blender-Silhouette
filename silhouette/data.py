@@ -1,4 +1,4 @@
-from bpy.types import PropertyGroup, Object, Collection
+from bpy.types import PropertyGroup, Object, Collection, Camera
 from bpy.props import *
 
 from . ctx import get_area_off
@@ -43,6 +43,10 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
     def mark_dirty(self, context):
         self.dirty = True
 
+    def mark_off_dirty(self, context):
+        self.refresh_offscreen = True
+        #self.dirty = True
+
     def select_target(self, context):
         if not self.target_object:
             return
@@ -84,7 +88,40 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
     target_object : PointerProperty(type=Object, name="Target Object", update=select_target) # TODO: make it a duynamic enum and filter mesh objects.
     target_collection : PointerProperty(type=Collection, name="Target Collection", update=mark_dirty)
 
+    def update_mode(self, context):
+        if self.is_navigation():
+            self.refresh_offscreen = True
+        elif self.prev_view_mode == 'NAV':
+            self.refresh_offscreen = True
+        self.prev_view_mode = self.view_mode
+        self.mark_dirty(context)
+
+    view_mode : EnumProperty (
+        items = (
+            ('PRESET',   "Preset",    "Use a predefined view"),
+            ('CAMERA',   "Camera",    "Custom view based on a camera object"),
+            ('NAV',      "Navigation","View based on your current 3d viewport view")
+            #('CUSTOM',   "Custom",    "Custom view based on your viewport view, you can update it with {'SHORTCUT'}")
+        ),
+        default = 'PRESET',
+        name = "View Mode",
+        description = "Options to adjust the silhouette's view",
+        update=update_mode
+    )
+
+    prev_view_mode : StringProperty(default='PRESET')
+
+    def is_preset(self): return self.view_mode == 'PRESET'
+    def is_camera(self): return self.view_mode == 'CAMERA'
+    def is_navigation(self): return self.view_mode == 'NAV'
+
+    use_region_dimensions : BoolProperty(default=True, name='Use Viewport Proportions', description="Sync silhouette dimensions with 3d viewport's editor proportions", update=mark_off_dirty)
+    scale : FloatProperty(default=.24, min=0.1, max=.5, step=0.05, name='Scale', update=mark_off_dirty, description="Scale silhouette by using 3d viewport's editor proportions and dimensions")
+
+    dimensions : IntVectorProperty(default=(256, 256), min=64, max=1024, update=mark_off_dirty, name="Dimensions", size=2, subtype='XYZ', step=16)
+
     dirty : BoolProperty(default=False)
+    refresh_offscreen : BoolProperty(default=False)
 
     view_preset : EnumProperty (
         items = (
@@ -106,6 +143,8 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         description = "Preset for silhouette view",
         update=mark_dirty
     )
+
+    view_camera : PointerProperty(type=Camera, name="View Camera", update=mark_dirty)
 
     use_multi_view : BoolProperty(default=False, name="Use Multi View", description="Toggle multi view silhouettes", update=mark_dirty)
 
@@ -130,6 +169,7 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
     )
 
     use_sculpt_auto_update : BoolProperty(default=False, name="Auto-Update on Sculpt Mode")
+    force_refresh : BoolProperty(default=False, name="Force Refresh")
 
     ''' Live Navigation View Settings. '''
     live_scale : FloatProperty(default=.5, min=0.2, max=1, step=0.05)

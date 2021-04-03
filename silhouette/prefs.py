@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator, AddonPreferences
-from bpy.props import PointerProperty
+from bpy.props import PointerProperty, BoolProperty
 
 from . data import SILHOUETTE_STYLE
 
@@ -9,9 +9,12 @@ class SilhouetteAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
     style : PointerProperty(type=SILHOUETTE_STYLE, name="Default Style")
+    show_beta_features : BoolProperty(default=True)
 
     def draw(self, context):
         layout = self.layout
+
+        layout.prop(self, 'show_beta_features', text="Show BETA features")
         
         col = layout.column(align=True)
         

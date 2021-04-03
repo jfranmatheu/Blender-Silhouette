@@ -1,8 +1,8 @@
-from bpy.types import GizmoGroup
+from bpy.types import GizmoGroup as SILUETAS
 from . gz import VIEW3D_GT_silhouette
 
 
-class VIEW3D_GGT_silhouettes(GizmoGroup):
+class VIEW3D_GGT_silhouettes(SILUETAS):
     bl_label = "GizmoGroup: Silhouettes"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'

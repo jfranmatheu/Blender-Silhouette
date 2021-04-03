@@ -272,3 +272,9 @@ def get_magic_matrices_from_view_and_fixed_dimensions(target: Object, multi_obje
     else:
         view_matrix, dims = get_multi_view_matrix_from_view_preset(target, view)
         return view_matrix, get_multi_ortho_projection_matrix_from_view_preset(target, view, dims, width, height)
+
+def get_cam_matrices(ctx: 'Context', camera: 'Camera', w: int = 256, h: int = 256) -> (Matrix, Matrix):
+    return camera.matrix_world.inverted(), camera.calc_matrix_camera(ctx.evaluated_depsgraph_get(), x=w, y=h, scale_x=1, scale_y=1)
+
+def get_view_cam_matrices(ctx: 'Context', w: int = 256, h: int = 256):
+    return ctx.space_data.region_3d.view_matrix, ctx.scene.camera.calc_matrix_camera(ctx.evaluated_depsgraph_get(), x=w, y=h, scale_x=1.0, scale_y=1.0)
