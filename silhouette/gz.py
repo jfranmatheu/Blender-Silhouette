@@ -18,6 +18,7 @@ from functools import partial
 from . matrix import get_magic_matrices_from_view_and_fixed_dimensions, get_cam_matrices, get_view_cam_matrices
 from . prefs import get_prefs
 from . utils import point_inside_rect
+from . draw.text import Draw_Text
 
 
 class VIEW3D_GT_silhouette(SILUETA):
@@ -123,6 +124,11 @@ class VIEW3D_GT_silhouette(SILUETA):
 
     def invoke(self, ctx: Context, evt: Event) -> set:
         print("GZ: INVOKE", evt.type, evt.value)
+        if evt.type in {'LEFTMOUSE', 'RIGHTMOUSE'} and evt.value == 'PRESS':
+            # User/Manual Update for Sculpt Meshes.
+            if ctx.mode == 'SCULPT' and ctx.active_object:
+                ctx.active_object.data.remesh_voxel_size *= 1
+                self.redraw_silhouette(ctx)
         return {'FINISHED'}
 
     def modal(self, ctx: Context, evt: Event, tweak: str) -> set:
@@ -254,7 +260,7 @@ class VIEW3D_GT_silhouette(SILUETA):
 
                     # NOTE: for now we need to update on edit mode every time cause mesh it's going to be edited all time...
                     ## WORKAROUND: for future would be to use handlers depsgraph in some way...
-                    elif context.mode == 'EDIT_MESH':
+                    elif context.mode in {'EDIT', 'EDIT_MESH'}:
                         self.redraw_silhouette(context)
                         '''
                         ob_id = to_check_ob.data
@@ -277,6 +283,7 @@ class VIEW3D_GT_silhouette(SILUETA):
                                 #to_check_ob.data.update_tag() # OK...
                                 #to_check_ob.update_tag(refresh={'DATA'}) #OK...
                                 ##to_check_ob.data.update_gpu_tag() # NOPE
+                                #context.window_manager.operators
                                 to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
                                 self.redraw_silhouette(context)
                                 self.time = get_time()
@@ -311,14 +318,13 @@ class VIEW3D_GT_silhouette(SILUETA):
             self.mode = context.mode
             return
 
-        '''
-        if context.mode == 'SCULPT' and to_check_ob:
+        if context.mode == 'SCULPT': # and to_check_ob:
             if self.settings.use_sculpt_auto_update:
                 if get_time() - self.time > self.sculpt_update_interval:
-                    to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
+                    #to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
+                    context.active_object.data.remesh_voxel_size *= 1
                     #self.redraw_silhouette(context)
                     self.time = get_time()
-        '''
 
     def draw_silhouette(self, context) -> None:
         #if context.area != self.ctx_area:
@@ -370,8 +376,11 @@ class VIEW3D_GT_silhouette(SILUETA):
             glDisable(GL_DEPTH_TEST)
         glDisable(GL_BLEND)
 
+
+        if context.mode == 'SCULPT' and not self.settings.use_sculpt_auto_update:
+            Draw_Text(self.position[0] + 5, self.position[1] + 5, "Tap to refresh!", 12, 0, 1.0, .06, .9, .9, True)
+
         #print("Drawing Offscreen... END")
-        
 
 
     def update_targets(self, context, redraw_on_update: bool = True):
