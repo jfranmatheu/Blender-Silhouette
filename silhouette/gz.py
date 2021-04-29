@@ -295,8 +295,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         if not is_navigation:
             if not self.settings.view_camera:
                 return
-    
-            if not self.camera_obj or self.settings.view_camera != sif context.mode == 'SCULPT' and :elf.camera_obj.data:
+
+            if not self.camera_obj or self.settings.view_camera != self.camera_obj.data:
                 self.camera_obj = bpy.data.objects.get(self.settings.view_camera.name, None)
                 if not self.camera_obj:
                     return
