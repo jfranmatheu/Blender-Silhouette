@@ -296,7 +296,7 @@ class VIEW3D_GT_silhouette(SILUETA):
             if not self.settings.view_camera:
                 return
     
-            if not self.camera_obj or self.settings.view_camera != self.camera_obj.data:
+            if not self.camera_obj or self.settings.view_camera != sif context.mode == 'SCULPT' and :elf.camera_obj.data:
                 self.camera_obj = bpy.data.objects.get(self.settings.view_camera.name, None)
                 if not self.camera_obj:
                     return
@@ -310,13 +310,15 @@ class VIEW3D_GT_silhouette(SILUETA):
                 self.time = get_time()
             self.mode = context.mode
             return
-        
-        if context.mode == 'SCULPT':
+
+        '''
+        if context.mode == 'SCULPT' and to_check_ob:
             if self.settings.use_sculpt_auto_update:
                 if get_time() - self.time > self.sculpt_update_interval:
                     to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
                     #self.redraw_silhouette(context)
                     self.time = get_time()
+        '''
 
     def draw_silhouette(self, context) -> None:
         #if context.area != self.ctx_area:
