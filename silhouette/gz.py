@@ -15,6 +15,7 @@ from bgl import (
 
 from functools import partial
 
+from . import DEBUG
 from . matrix import get_magic_matrices_from_view_and_fixed_dimensions, get_cam_matrices, get_view_cam_matrices
 from . prefs import get_prefs
 from . utils import point_inside_rect
@@ -48,7 +49,8 @@ class VIEW3D_GT_silhouette(SILUETA):
     ''' Initialization. '''
 
     def setup(self) -> None:
-        print("GZ: SETUP")
+        if DEBUG:
+            print("GZ: SETUP")
         #self.offscreen = None
 
         self.target = None
@@ -78,7 +80,8 @@ class VIEW3D_GT_silhouette(SILUETA):
             self.width, self.height = self.settings.dimensions
 
     def init(self, context):
-        print("GZ: INIT")
+        if DEBUG:
+            print("GZ: INIT")
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
         self.settings.dirty = True # HACK. Force init update...
@@ -123,7 +126,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         return 1 if point_inside_rect(*loc, *self.position, self.width, self.height) else -1
 
     def invoke(self, ctx: Context, evt: Event) -> set:
-        print("GZ: INVOKE", evt.type, evt.value)
+        if DEBUG:
+            print("GZ: INVOKE", evt.type, evt.value)
         if evt.type in {'LEFTMOUSE', 'RIGHTMOUSE'} and evt.value == 'PRESS':
             # User/Manual Update for Sculpt Meshes.
             if ctx.mode == 'SCULPT' and ctx.active_object:
@@ -132,11 +136,13 @@ class VIEW3D_GT_silhouette(SILUETA):
         return {'FINISHED'}
 
     def modal(self, ctx: Context, evt: Event, tweak: str) -> set:
-        print("GZ: MODAL")
+        if DEBUG:
+            print("GZ: MODAL")
         return {'FINISHED'}
 
     def exit(self, ctx: Context, cancel: bool) -> None:
-        print("GZ: EXIT")
+        if DEBUG:
+            print("GZ: EXIT")
 
     def time_function(self, wait_time: float, func: callable, *args) -> None:
         timers.register(partial(func, *args), first_interval=wait_time) 
@@ -145,20 +151,21 @@ class VIEW3D_GT_silhouette(SILUETA):
     ''' Drawing. '''
 
     def init_graphics(self) -> None:
-        print("GZ: Init Graphics")
+        if DEBUG:
+            print("GZ: Init Graphics")
         from . draw.gpu_shaders import shader_silueta
         self.shader = shader_silueta
         self.repaint() 
 
     def repaint(self) -> None:
-        #print("GZ: Repaint")
+        ##print("GZ: Repaint")
         self.update_shader()
         self.update_batch()
 
     def update_batch(self) -> None:
         from . draw.geo import get_silu_verts
         self.batch = batch_for_shader(self.shader, 'TRI_FAN', { "pos" : get_silu_verts(*self.position, self.width, self.height), "texCoord": ((0, 1), (0, 0), (1, 0), (1, 1)) },)
-        print("\t-", self.batch)
+        ##print("\t-", self.batch)
 
     def update_shader(self) -> None:
         shader = self.shader
@@ -169,15 +176,16 @@ class VIEW3D_GT_silhouette(SILUETA):
         shader.uniform_float("co", style.color)
         shader.uniform_float("bco", style.bg_color)
         style.dirty = False
-        #print("\t-", self.shader)
+        ##print("\t-", self.shader)
 
     def init_offscreen(self) -> None:
-        print("GZ: Init Offscreen")
+        if DEBUG:
+            print("GZ: Init Offscreen")
         if self.__class__._offscreen_instance:
             self.offscreen = self.__class__._offscreen_instance
         else:
             self.update_offscreen()
-        #print("\t-", self.offscreen)
+        ##print("\t-", self.offscreen)
 
     def update_offscreen(self):
         self.offscreen = self.__class__._offscreen_instance = GPUOffScreen(self.width, self.height)
@@ -461,7 +469,8 @@ class VIEW3D_GT_silhouette(SILUETA):
             shading.single_color            = single_color
         
         self.settings.dirty = False
-        print("REDRAW SILHOUETTE")
+        if DEBUG:
+            print("REDRAW SILHOUETTE")
 
     def check_rotation_change(self, to_check_ob):
         rot_mode = to_check_ob.rotation_mode

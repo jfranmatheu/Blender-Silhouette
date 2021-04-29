@@ -168,7 +168,7 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         update=mark_dirty
     )
 
-    use_sculpt_auto_update : BoolProperty(default=False, name="Auto-Update on Sculpt Mode")
+    use_sculpt_auto_update : BoolProperty(default=False, name="Auto-Update on Sculpt Mode", description="Sculpt Mode doesn't register sculpting actions by itself (core bug since 2.82) so this is meant to solve that issue (tho you still can tap over the silhouette to manually update preview or use 'Navigation Live View' feature!)")
     force_refresh : BoolProperty(default=False, name="Force Refresh")
 
     ''' Live Navigation View Settings. '''
