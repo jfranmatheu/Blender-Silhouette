@@ -374,10 +374,10 @@ class VIEW3D_GT_silhouette(SILUETA):
         glEnable(GL_BLEND)
 
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, self.offscreen.color_texture)
+        glBindTexture(GL_TEXTURE_2D, self.offscreen.texture_color)
 
         # Draw texture.
-        #draw_texture_2d(self.offscreen.color_texture, self.position, self.width, self.height)
+        #draw_texture_2d(self.offscreen.texture_color, self.position, self.width, self.height)
         self.batch.draw(self.shader)
 
         if not style.show_in_front:
