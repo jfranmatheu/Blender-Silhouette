@@ -47,7 +47,7 @@ class SilhouetteAddonPreferences(AddonPreferences):
         subcol = row.column(align=True)
         subcol.use_property_split = True
         subcol.use_property_decorate = False
-        
+
         subcol.prop(style, "color")
         subcol.prop(style, "bg_color")
         subcol.row().prop(style, "opacity", slider=True)

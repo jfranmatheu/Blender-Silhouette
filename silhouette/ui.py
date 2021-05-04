@@ -86,6 +86,8 @@ class VIEW3D_PT_silhouette(Panel):
         else:
             self.draw_view_nav(settings, left_layout, content)
 
+        self.draw_style(prefs, left_layout)
+
         self.draw_common_settings(settings, left_layout)
 
         if prefs.show_beta_features:
@@ -134,3 +136,20 @@ class VIEW3D_PT_silhouette(Panel):
         #box.prop(rt, 'color', text="Color")
         #box.prop(rt, 'bg_color', text="Background Color")
         #box.prop(rt, 'in_front', text="Show In Front")
+
+    def draw_style(self, prefs, layout):
+        style = prefs.style
+
+        content = layout.box().column(align=True)
+        content.use_property_split = True
+        content.use_property_decorate = False
+
+        content.prop(style, "color")
+        if not style.use_transparency:
+            content.prop(style, "bg_color")
+
+        row = content.row()
+        row.use_property_split = False
+        row.prop(style, "use_transparency")
+
+        content.row().prop(style, "opacity", slider=True)

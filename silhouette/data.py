@@ -20,8 +20,13 @@ VIEW_3_4_BACK_RIGHT = 11
 
 
 class SILHOUETTE_STYLE(PropertyGroup):
-    def mark_dirty(self, dummy):
+    def mark_dirty(self, context):
         self.dirty = True
+
+        #print("MARK DIRTY")
+        #print("\t", context.area.type)
+        #if context.area.type == 'VIEW_3D':
+        #    context.area.tag_redraw()
 
     use_viewport_settings : BoolProperty(default=False, name="Use Viewport Settings", update=mark_dirty)
 

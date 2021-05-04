@@ -51,7 +51,7 @@ class VIEW3D_GT_silhouette(SILUETA):
     def setup(self) -> None:
         if DEBUG:
             print("GZ: SETUP")
-        #self.offscreen = None
+        self.offscreen = None
 
         self.target = None
         self.target_location = Vector((0, 0, 0))
@@ -82,6 +82,9 @@ class VIEW3D_GT_silhouette(SILUETA):
     def init(self, context):
         if DEBUG:
             print("GZ: INIT")
+
+        self.offscreen = None
+
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
         self.settings.dirty = True # HACK. Force init update...
@@ -111,8 +114,9 @@ class VIEW3D_GT_silhouette(SILUETA):
     def refresh(self, context):
         #print("GZ: REFRESH")
         # Ensure that draw handler is initialized. (enabling/disabling/enabling BUG)
-        if self.style.dirty:
-            self.update_shader()
+        #if self.style.dirty:
+        #    self.update_shader(context)
+        pass
 
 
     ''' Event handle. '''
@@ -123,14 +127,17 @@ class VIEW3D_GT_silhouette(SILUETA):
 
     def test_select(self, ctx: Context, loc: (int, int)) -> int:
         #print("TEST SELECT...")
+        if self.style.dirty:
+            self.update_shader(ctx)
         return 1 if point_inside_rect(*loc, *self.position, self.width, self.height) else -1
 
     def invoke(self, ctx: Context, evt: Event) -> set:
         if DEBUG:
             print("GZ: INVOKE", evt.type, evt.value)
-        if evt.type in {'LEFTMOUSE', 'RIGHTMOUSE'} and evt.value == 'PRESS':
+        if evt.type in {'LEFTMOUSE', 'RIGHTMOUSE'}:
             # User/Manual Update for Sculpt Meshes.
             if ctx.mode == 'SCULPT' and ctx.active_object:
+                ctx.region.tag_redraw()
                 ctx.active_object.data.remesh_voxel_size *= 1
                 self.redraw_silhouette(ctx)
         return {'FINISHED'}
@@ -167,7 +174,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.batch = batch_for_shader(self.shader, 'TRI_FAN', { "pos" : get_silu_verts(*self.position, self.width, self.height), "texCoord": ((0, 1), (0, 0), (1, 0), (1, 1)) },)
         ##print("\t-", self.batch)
 
-    def update_shader(self) -> None:
+    def update_shader(self, ctx = None) -> None:
+        print("*** SHADER UPDATED ***")
         shader = self.shader
         style = self.style
         shader.bind()
@@ -176,6 +184,9 @@ class VIEW3D_GT_silhouette(SILUETA):
         shader.uniform_float("co", style.color)
         shader.uniform_float("bco", style.bg_color)
         style.dirty = False
+
+        if ctx and ctx.area and ctx.area.type == 'VIEW_3D':
+            ctx.region.tag_redraw()
         ##print("\t-", self.shader)
 
     def init_offscreen(self) -> None:
@@ -341,7 +352,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         if not self.offscreen: # not target or 
             return
 
-        context = bpy.context
+        #context = bpy.context
         style = self.style
         view_mode = self.settings.view_mode
 
@@ -374,10 +385,10 @@ class VIEW3D_GT_silhouette(SILUETA):
         glEnable(GL_BLEND)
 
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, self.offscreen.texture_color)
+        glBindTexture(GL_TEXTURE_2D, self.offscreen.color_texture)
 
         # Draw texture.
-        #draw_texture_2d(self.offscreen.texture_color, self.position, self.width, self.height)
+        #draw_texture_2d(self.offscreen.color_texture, self.position, self.width, self.height)
         self.batch.draw(self.shader)
 
         if not style.show_in_front:

@@ -148,6 +148,9 @@ class SILHOUETTE_OT_start_live(Operator):
         if match:
             self.match = self.skip_matches == 0
             self.skip_matches -= 1
+
+            if self.match:
+                self.texid += 2
         else:
             self.texid += 1
         
