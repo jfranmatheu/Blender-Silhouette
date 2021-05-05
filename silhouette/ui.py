@@ -38,7 +38,7 @@ class VIEW3D_PT_silhouette(Panel):
         col.use_property_split = False
 
         header = col.box()
-        header.label(text="Other Settings")
+        header.label(text="Other Settings", icon='OPTIONS')
 
         content = col.box()
         content.prop(settings, 'use_sculpt_auto_update')
@@ -69,7 +69,7 @@ class VIEW3D_PT_silhouette(Panel):
         options.prop(settings, 'view_mode', expand=True, text="PRESET")
 
         header = col.box()
-        header.label(text="Settings")
+        header.label(text="Settings", icon='SETTINGS')
 
         content = col.box()
         if not settings.is_navigation():
@@ -105,6 +105,7 @@ class VIEW3D_PT_silhouette(Panel):
         block_header.label(text="Navigation Live View")
         block_header.alert = True
         block_header.label(text="BETA Feature !")
+        block_header.label(text="(Recommended for sculpting)")
         block_header.alert = False
 
         col = right_layout.column(align=True)
@@ -138,9 +139,14 @@ class VIEW3D_PT_silhouette(Panel):
         #box.prop(rt, 'in_front', text="Show In Front")
 
     def draw_style(self, prefs, layout):
+        style_layout = layout.column(align=True)
+
+        header = style_layout.box()
+        header.label(text="Style", icon='SHADERFX')
+
         style = prefs.style
 
-        content = layout.box().column(align=True)
+        content = style_layout.box().column(align=True)
         content.use_property_split = True
         content.use_property_decorate = False
 
