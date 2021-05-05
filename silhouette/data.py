@@ -30,8 +30,8 @@ class SILHOUETTE_STYLE(PropertyGroup):
 
     use_viewport_settings : BoolProperty(default=False, name="Use Viewport Settings", update=mark_dirty)
 
-    use_transparency : BoolProperty(default=False, name="Use Transparent Background", update=mark_dirty)
-    show_in_front : BoolProperty(default=False, name="Show In Front")
+    use_transparency : BoolProperty(default=False, name="Use Transparent Background", update=mark_dirty, description="Skip drawing silhouette background")
+    show_in_front : BoolProperty(default=False, name="Show In Front", description="Draws your silhouette in front of your geometry/objects")
 
     use_flat_style : BoolProperty(default=True, name="Use Flat Style")
     show_shadows : BoolProperty(default=False, name="Show Shadows")
@@ -41,7 +41,7 @@ class SILHOUETTE_STYLE(PropertyGroup):
     bg_color : FloatVectorProperty(default=(0, 0, 0), min=0, max=1,name="Background Color", subtype='COLOR', update=mark_dirty)
     opacity : FloatProperty(default=1, max=1, min=0.01, step=0.1, name="Opacity", update=mark_dirty)
 
-    dirty : BoolProperty(default=False)
+    dirty : BoolProperty(default=True)
 
 
 class SILHOUETTE_SETTINGS(PropertyGroup):

@@ -86,15 +86,15 @@ class VIEW3D_PT_silhouette(Panel):
         else:
             self.draw_view_nav(settings, left_layout, content)
 
-        self.draw_style(prefs, left_layout)
+        self.draw_style(left_layout, prefs.style)
 
         self.draw_common_settings(settings, left_layout)
 
         if prefs.show_beta_features:
-            self.draw_live_view(settings, main_row)
+            self.draw_live_view(prefs, settings, main_row)
 
     
-    def draw_live_view(self, settings, main_row):
+    def draw_live_view(self, prefs, settings, main_row):
     
         from . liv_ops import rtlive
 
@@ -119,7 +119,7 @@ class VIEW3D_PT_silhouette(Panel):
         '''
 
         content = col.box()
-        content.scale_y = 1.5
+        content.scale_y = 1.1
 
         if not rtlive:
             content.operator('silhouette.start_live', text="Start Live Silhouette")
@@ -129,22 +129,26 @@ class VIEW3D_PT_silhouette(Panel):
             content.operator('silhouette.stop_live', text="Remove Live Silhouette")
             content.alert = False
 
-            box = content.box()
+            settings_layout = content.column(align=True)
+            box = settings_layout.box()
+            box.label(text="Settings", icon='SETTINGS')
+
+            box = settings_layout.box()
             #box.label(text="Settings:", icon='SETTINGS')
             box.prop(settings, 'live_scale', text="Scale")
             box.prop(settings, 'live_alignment', text="Alignment")
 
-        #box.prop(rt, 'color', text="Color")
-        #box.prop(rt, 'bg_color', text="Background Color")
-        #box.prop(rt, 'in_front', text="Show In Front")
+            #box.prop(rt, 'color', text="Color")
+            #box.prop(rt, 'bg_color', text="Background Color")
+            #box.prop(rt, 'in_front', text="Show In Front")
 
-    def draw_style(self, prefs, layout):
+            self.draw_style(content, prefs.live_style)
+
+    def draw_style(self, layout, style):
         style_layout = layout.column(align=True)
 
         header = style_layout.box()
         header.label(text="Style", icon='SHADERFX')
-
-        style = prefs.style
 
         content = style_layout.box().column(align=True)
         content.use_property_split = True
@@ -159,3 +163,5 @@ class VIEW3D_PT_silhouette(Panel):
         row.prop(style, "use_transparency")
 
         content.row().prop(style, "opacity", slider=True)
+
+        content.prop(style, 'show_in_front', text="Show In Front")

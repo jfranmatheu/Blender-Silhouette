@@ -8,7 +8,8 @@ out vec2 texCoord_interp;
 
 void main()
 {
-    gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0f, 1.0f);
+    gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0f, 1.0f);
+    gl_Position.z = 1.0;
     texCoord_interp = texCoord;
 }
 '''
@@ -51,14 +52,25 @@ uniform float use_transp;
 void main()
 {
     fragColor = texture(i, texCoord_interp);
-    
+
     if (use_transp == 1.0) {
         if (fragColor.a < .1) {
             discard;
         }
     }
 
-    fragColor.rgb = mix(bco, co, fragColor.a);
+    //float f = (fragColor.r + fragColor.g + fragColor.b) / 3.0;
+    if (fragColor.a > 0.6) {
+        fragColor.rgb = co;
+    }
+    else if (fragColor.a < 0.4) {
+        fragColor.rgb = bco;
+    }
+    else {
+        
+        fragColor.rgb = mix(bco, co, fragColor.a);
+    } 
+    
     fragColor.a = alpha;
 }
 '''

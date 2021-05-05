@@ -1,13 +1,15 @@
 from bgl import *
 from . id_finder import IDFinder
 from . draw.silueta import Draw_Live_Silueta
+from . draw.gpu_fun import SetDepth, RstDepth
 
 
 def live_draw_callback_px(draw_ctx, data, *args, **kwargs):
     settings, style = data
     if settings.live_texid != -1:
         if not style.show_in_front:
-            glEnable(GL_DEPTH_TEST)
+            #glEnable(GL_DEPTH_TEST)
+            SetDepth()
         Draw_Live_Silueta (
             settings.live_texid,
             *settings.get_live_pos_size(draw_ctx),
@@ -15,7 +17,8 @@ def live_draw_callback_px(draw_ctx, data, *args, **kwargs):
             #style.color, style.bg_color
         )
         if not style.show_in_front:
-            glDisable(GL_DEPTH_TEST)
+            #glDisable(GL_DEPTH_TEST)
+            RstDepth()
         return
     
 

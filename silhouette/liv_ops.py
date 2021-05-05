@@ -112,7 +112,7 @@ class SILHOUETTE_OT_start_live(Operator):
         context.area.tag_redraw()
 
         #rt = context.window_manager.render_texture.live
-        style = get_prefs(context).style
+        style = get_prefs(context).live_style
         IDFinder.reset()
         DC = DrawContext(context)
         DC.set_handler(live_draw_callback_px, bpy.ops.silhouette.stop_live, (self.silhouette, style))
@@ -122,7 +122,7 @@ class SILHOUETTE_OT_start_live(Operator):
 
         from . draw.gpu_shaders import shader_live_silueta as shader
         shader.bind()
-        shader.uniform_float("use_transp", 1.0 if style.use_transparency else 0.0)
+        shader.uniform_float("use_transp", 0.0 if style.use_transparency else 1.0)
         shader.uniform_float("alpha", style.opacity)
         shader.uniform_float("co", style.color)
         shader.uniform_float("bco", style.bg_color)
