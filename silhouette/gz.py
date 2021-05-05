@@ -418,6 +418,13 @@ class VIEW3D_GT_silhouette(SILUETA):
 
     def redraw_silhouette(self, context) -> None:
         style = self.style
+
+        scene = context.scene
+        settings = self.settings
+
+        if settings.is_navigation():
+            if not scene.camera:
+                return
         
         # Backup. # We want to hide overlays and gizmos for any configuration we have.
         space = context.space_data
@@ -447,8 +454,6 @@ class VIEW3D_GT_silhouette(SILUETA):
 
 
         # TODO: OVERLAYS TOGGLE SHOULD BE HERE...
-        scene = context.scene
-        settings = self.settings
         if settings.is_preset():
             mat = get_magic_matrices_from_view_and_fixed_dimensions(self.target, self.multi_object, settings.view_preset, self.width, self.height)
         elif self.camera_obj and settings.is_camera():
