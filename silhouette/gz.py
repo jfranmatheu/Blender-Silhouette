@@ -22,10 +22,38 @@ from . utils import point_inside_rect
 from . draw.text import Draw_Text
 
 
+import bpy
+
+from bpy.app.handlers import persistent
+@persistent
+def depsgraph_post_update(scene):
+    if bpy.context.mode == 'EDIT_MESH': #, 'SCULPT'}:
+        return
+    VIEW3D_GT_silhouette.push_depsgraph_updates(bpy.context.evaluated_depsgraph_get().updates)
+
+
 class VIEW3D_GT_silhouette(SILUETA):
 
     _draw_handler_instance = None
     _offscreen_instance = None
+    _instance = None
+
+    @classmethod
+    def push_depsgraph_updates(cls, dep_updates):
+        if not cls._instance:
+            if DEBUG:
+                print("No Gizmo Instance")
+            return
+        instance = cls._instance
+        if instance.deps_dirty:
+            if DEBUG:
+                print("Already marked dirty")
+            return
+        for update in dep_updates:
+            # instance.target
+            if update.id.original == bpy.context.object and (update.is_updated_geometry or update.is_updated_transform):
+                instance.deps_dirty = True
+                return
     
     @classmethod
     def stop_draw_handler(cls):
@@ -35,24 +63,26 @@ class VIEW3D_GT_silhouette(SILUETA):
             except ValueError:
                 print("ERROR: DRAW HANDLER -> ValueError: callback_remove(handler): NULL handler given, invalid or already removed")
             cls._draw_handler_instance = None
+            cls._instance = None
             return True
         return False
 
-
     def start_draw_handler(self, context = None):
         if not context: context = bpy.context
+        self.__class__._instance = self
         #self.refresh_region(context)
         self.draw_handler = self.__class__._draw_handler_instance = SpaceView3D.draw_handler_add(self.draw_silhouette, (context,), 'WINDOW', 'POST_PIXEL')
-
 
 
     ''' Initialization. '''
 
     def setup(self) -> None:
+        self.__class__._instance = self
         if DEBUG:
             print("GZ: SETUP")
         self.offscreen = None
 
+        self.deps_dirty = False
         self.target = None
         self.target_location = Vector((0, 0, 0))
         self.target_rotation = Vector((0, 0, 0))
@@ -281,20 +311,19 @@ class VIEW3D_GT_silhouette(SILUETA):
                     # NOTE: for now we need to update on edit mode every time cause mesh it's going to be edited all time...
                     ## WORKAROUND: for future would be to use handlers depsgraph in some way...
                     elif context.mode in {'EDIT', 'EDIT_MESH'}:
-                        dep = context.evaluated_depsgraph_get()
-                        for update in dep.updates:
-                            if update.id.original == to_check_ob and (update.is_updated_geometry or update.is_updated_transform):
-                                self.redraw_silhouette(context)
+                        if self.deps_dirty:
+                            self.deps_dirty = False
+                            self.redraw_silhouette(context)
                     elif context.mode == 'SCULPT':
                         if self.settings.use_sculpt_auto_update:
-                            dep = context.evaluated_depsgraph_get()
-                            for update in dep.updates:
-                                if update.id.original == to_check_ob and (update.is_updated_geometry or update.is_updated_transform):
-                                    #print("MESH IS UPDATED!")
-                                    self.redraw_silhouette(context)
-                                    self.time = get_time()
-                                    return
-                            
+                            '''
+                            if self.deps_dirty:
+                                print("HELLO??")
+                                to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
+                                self.deps_dirty = False
+                                self.redraw_silhouette(context)
+                                self.time = get_time()
+                            '''
                             if get_time() - self.time > self.sculpt_update_interval:
                                 #to_check_ob.data.vertices.update() # OK...
                                 #to_check_ob.data.update_tag() # OK...
@@ -304,6 +333,7 @@ class VIEW3D_GT_silhouette(SILUETA):
                                 to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
                                 self.redraw_silhouette(context)
                                 self.time = get_time()
+
 
         # NOTE: Not useful code atm!
         elif context.mode != self.mode:

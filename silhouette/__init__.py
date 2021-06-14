@@ -16,7 +16,7 @@ bl_info = {
     "author" : "J. Fran Matheu (@jfranmatheu)",
     "description" : "Quickly preview silhouettes of your mesh over the viewport from different view presets",
     "blender" : (2, 93, 0),
-    "version" : (2, 1, 1),
+    "version" : (2, 1, 2),
     "location" : "3D Viewport",
     "warning" : "This 2.0 version is a rewrite from the 1.X series, you should expect quite different things",
     "category" : "Generic"
@@ -33,6 +33,9 @@ def register():
     from bpy.types import Scene as scn#, SpaceView3D
     from bpy.props import PointerProperty as Pointer, BoolProperty
     from . data import SILHOUETTE_SETTINGS
+    from . gz import depsgraph_post_update
+    from bpy.app.handlers import depsgraph_update_post
+    depsgraph_update_post.append(depsgraph_post_update)
 
     #SpaceView3D.silhouette_enabled = BoolProperty(default=False, name="Enable Silhouette", description="Toggle silhouette overlay in 3d viewport")
 
@@ -46,4 +49,9 @@ def unregister():
     
     from bpy.types import Scene as scn#, SpaceView3D
     del scn.silhouette
+    from bpy.app.handlers import depsgraph_update_post
     #del SpaceView3D.silhouette_enabled
+
+    from . gz import depsgraph_post_update
+
+    depsgraph_update_post.remove(depsgraph_post_update)
