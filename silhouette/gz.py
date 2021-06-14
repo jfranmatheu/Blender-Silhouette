@@ -52,6 +52,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         for update in dep_updates:
             # instance.target
             if update.id.original == bpy.context.object and (update.is_updated_geometry or update.is_updated_transform):
+                if DEBUG:
+                    print("Depsgraph Update mesh -> ", bpy.context.object)
                 instance.deps_dirty = True
                 return
     
@@ -98,6 +100,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.width  = 256
         self.height = 256
 
+        self.act_op = None
+
         #self.init_offscreen()
         #self.init_graphics()
 
@@ -114,6 +118,7 @@ class VIEW3D_GT_silhouette(SILUETA):
             print("GZ: INIT")
 
         self.offscreen = None
+        self.act_op = id(context.active_operator) if context.active_operator else None
 
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
@@ -252,7 +257,7 @@ class VIEW3D_GT_silhouette(SILUETA):
             self.update_dimensions(context)
             self.update_targets(context) # full update in case property of target type or target changed.
 
-        elif context.active_object:
+        elif context.active_object: # and context.active_object.type in 'MESH':
             
             #''' Active object has changed so we may check few cases... '''
             if self.act_ob != context.active_object:
@@ -313,6 +318,9 @@ class VIEW3D_GT_silhouette(SILUETA):
                     elif context.mode in {'EDIT', 'EDIT_MESH'}:
                         if self.deps_dirty:
                             self.deps_dirty = False
+                            self.redraw_silhouette(context)
+                        elif context.active_operator and id(context.active_operator) != self.act_op:
+                            self.act_op = id(context.active_operator)
                             self.redraw_silhouette(context)
                     elif context.mode == 'SCULPT':
                         if self.settings.use_sculpt_auto_update:

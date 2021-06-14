@@ -21,6 +21,12 @@ class VIEW3D_GGT_silhouettes(SILUETAS):
     @classmethod
     def poll(cls, context):
         if not context.active_object:
+            if VIEW3D_GT_silhouette.stop_draw_handler(): # HACK.
+                context.region.tag_redraw()
+            return False
+        if context.scene.silhouette.is_preset() and context.active_object.type not in {'MESH', 'CURVE', 'ARMATURE'}:
+            if VIEW3D_GT_silhouette.stop_draw_handler(): # HACK.
+                context.region.tag_redraw()
             return False
         if not context.scene.silhouette.enabled:
         #if not context.space_data.silhouette_enabled:

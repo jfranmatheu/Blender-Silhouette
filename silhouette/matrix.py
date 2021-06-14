@@ -219,7 +219,7 @@ def get_ortho_projection_matrix_from_view_preset(target: Object, view: str = 'FR
 
     # HACK.
     frame_scale_factor = min(width, height) * 0.00667 / 256
-    scale_factor = min(1/dim_plane.x, 1/dim_plane.y) * 0.00667 # Magic value.
+    scale_factor = min(1/max(dim_plane.x, 1), 1/max(dim_plane.y, 1)) * 0.00667 # Magic value.
     # border_threshold = 0.0035 # 0.004 for full.
     mat[0][0] = width  * scale_factor # width  * border_threshold # 1 / width
     mat[1][1] = height * scale_factor # height * border_threshold # 1 / height
@@ -252,7 +252,7 @@ def get_multi_ortho_projection_matrix_from_view_preset(targets, view: str = 'FRO
 
     # HACK.
     frame_scale_factor = min(width, height) * 0.00667 / 256
-    scale_factor = min(1/dim_plane.x, 1/dim_plane.y) * 0.00667 # Magic value.
+    scale_factor = min(1/max(dim_plane.x, 1), 1/max(dim_plane.y, 1)) * 0.00667 # Magic value.
     # border_threshold = 0.0035 # 0.004 for full.
     mat[0][0] = width  * scale_factor # width  * border_threshold # 1 / width
     mat[1][1] = height * scale_factor # height * border_threshold # 1 / height
