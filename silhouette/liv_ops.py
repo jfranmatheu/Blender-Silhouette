@@ -45,7 +45,7 @@ class SILHOUETTE_OT_start_live(Operator):
         
         self.silhouette = context.scene.silhouette
 
-        self.init_mode = context.mode
+        self.init_mode = context.mode if not 'EDIT' in context.mode else 'EDIT'
         bpy.ops.object.mode_set(mode='OBJECT')
 
         self.silhouette_state = self.silhouette.enabled
@@ -122,7 +122,7 @@ class SILHOUETTE_OT_start_live(Operator):
 
         from . draw.gpu_shaders import shader_live_silueta as shader
         shader.bind()
-        shader.uniform_float("use_transp", 0.0 if style.use_transparency else 1.0)
+        shader.uniform_float("use_transp", 1.0 if style.use_transparency else 0.0)
         shader.uniform_float("alpha", style.opacity)
         shader.uniform_float("co", style.color)
         shader.uniform_float("bco", style.bg_color)

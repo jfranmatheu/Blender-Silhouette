@@ -175,7 +175,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         ##print("\t-", self.batch)
 
     def update_shader(self, ctx = None) -> None:
-        print("*** SHADER UPDATED ***")
+        #if DEBUG:
+        #print("*** SHADER UPDATED ***")
         shader = self.shader
         style = self.style
         shader.bind()
@@ -280,23 +281,20 @@ class VIEW3D_GT_silhouette(SILUETA):
                     # NOTE: for now we need to update on edit mode every time cause mesh it's going to be edited all time...
                     ## WORKAROUND: for future would be to use handlers depsgraph in some way...
                     elif context.mode in {'EDIT', 'EDIT_MESH'}:
-                        self.redraw_silhouette(context)
-                        '''
-                        ob_id = to_check_ob.data
-                        print(id(to_check_ob), to_check_ob)
-                        print(id(ob_id), ob_id)
-                        depsgraph = context.evaluated_depsgraph_get()
-                        print("EDIT MODE: DEPSGRAPH CHECK!")
-                        for update in depsgraph.updates:
-                            print(update.id)
-                            if ob_id is update.id:
-                                print("EDIT MODE: DEPSGRAPH UPDATE ID MATCH!")
-                                if update.is_updated_geometry() or update.is_updated_transform():
-                                    print("EDIT MODE: DEPSGRAPH UPDATE GEOMETRY OR TRANSFORM!")
-                                    self.redraw_silhouette(context)
-                        '''
+                        dep = context.evaluated_depsgraph_get()
+                        for update in dep.updates:
+                            if update.id.original == to_check_ob and (update.is_updated_geometry or update.is_updated_transform):
+                                self.redraw_silhouette(context)
                     elif context.mode == 'SCULPT':
                         if self.settings.use_sculpt_auto_update:
+                            dep = context.evaluated_depsgraph_get()
+                            for update in dep.updates:
+                                if update.id.original == to_check_ob and (update.is_updated_geometry or update.is_updated_transform):
+                                    #print("MESH IS UPDATED!")
+                                    self.redraw_silhouette(context)
+                                    self.time = get_time()
+                                    return
+                            
                             if get_time() - self.time > self.sculpt_update_interval:
                                 #to_check_ob.data.vertices.update() # OK...
                                 #to_check_ob.data.update_tag() # OK...
@@ -307,6 +305,7 @@ class VIEW3D_GT_silhouette(SILUETA):
                                 self.redraw_silhouette(context)
                                 self.time = get_time()
 
+        # NOTE: Not useful code atm!
         elif context.mode != self.mode:
             if self.mode == 'SCULPT':
                 self.redraw_silhouette(context)
