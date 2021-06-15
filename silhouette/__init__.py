@@ -16,7 +16,7 @@ bl_info = {
     "author" : "J. Fran Matheu (@jfranmatheu)",
     "description" : "Quickly preview silhouettes of your mesh over the viewport from different view presets",
     "blender" : (2, 93, 0),
-    "version" : (2, 1, 4),
+    "version" : (2, 1, 5),
     "location" : "3D Viewport",
     "warning" : "This 2.0 version is a rewrite from the 1.X series, you should expect quite different things",
     "category" : "Generic"
@@ -42,7 +42,7 @@ def register():
     auto_load.register()
     
     scn.silhouette = Pointer(type=SILHOUETTE_SETTINGS)
-    
+
 
 def unregister():
     auto_load.unregister()

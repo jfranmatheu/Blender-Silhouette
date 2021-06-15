@@ -161,6 +161,9 @@ class VIEW3D_GT_silhouette(SILUETA):
         #print("\t-", self.draw_handler)
 
     def refresh(self, context):
+        self.style = get_prefs(context).style
+        self.settings = context.scene.silhouette
+        self.ctx_area = context.area
         #print("GZ: REFRESH")
         # Ensure that draw handler is initialized. (enabling/disabling/enabling BUG)
         #if self.style.dirty:
@@ -176,8 +179,10 @@ class VIEW3D_GT_silhouette(SILUETA):
 
     def test_select(self, ctx: Context, loc: (int, int)) -> int:
         #print("TEST SELECT...")
-        if self.style.dirty:
-            self.update_shader(ctx)
+
+        # NOTE: removed in 2.1.6
+        ##if self.style.dirty:
+        ##    self.update_shader(ctx)
         return 1 if point_inside_rect(*loc, *self.position, self.width, self.height) else -1
 
     def invoke(self, ctx: Context, evt: Event) -> set:
@@ -440,6 +445,8 @@ class VIEW3D_GT_silhouette(SILUETA):
 
         # Draw texture.
         #draw_texture_2d(self.offscreen.color_texture, self.position, self.width, self.height)
+        if self.style.dirty:
+            self.update_shader(context)
         self.batch.draw(self.shader)
 
         if not style.show_in_front:
