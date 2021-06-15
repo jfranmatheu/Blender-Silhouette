@@ -22,7 +22,7 @@ bl_info = {
     "category" : "Generic"
 }
 
-DEBUG = True
+DEBUG = False
 
 from . import auto_load
 

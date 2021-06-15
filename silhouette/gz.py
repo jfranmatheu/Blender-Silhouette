@@ -32,6 +32,20 @@ def depsgraph_post_update(scene):
     VIEW3D_GT_silhouette.push_depsgraph_updates(bpy.context.evaluated_depsgraph_get().updates)
 
 
+shading_props = {
+    'light' : 'FLAT',
+    'background_type' : 'VIEWPORT',
+    'background_color' : (0.0, 0.0, 0.0),
+    'color_type' : 'SINGLE',
+    'single_color' : (1.0, 1.0, 1.0),
+    'show_xray' : False,
+    'show_shadows' : False,
+    'show_cavity' : False,
+    'show_specular_highlight' : False,
+    'use_dof' : False,
+}
+
+
 class VIEW3D_GT_silhouette(SILUETA):
 
     _draw_handler_instance = None
@@ -432,7 +446,6 @@ class VIEW3D_GT_silhouette(SILUETA):
             glDisable(GL_DEPTH_TEST)
         glDisable(GL_BLEND)
 
-
         if context.mode == 'SCULPT' and not self.settings.use_sculpt_auto_update:
             Draw_Text(self.position[0] + 5, self.position[1] + 5, "Tap to refresh!", 12, 0, 1.0, .06, .9, .9, True)
 
@@ -465,30 +478,21 @@ class VIEW3D_GT_silhouette(SILUETA):
         
         # Backup. # We want to hide overlays and gizmos for any configuration we have.
         space = context.space_data
+        shading = space.shading
+
         show_overlays   = space.overlay.show_overlays
         show_gizmo      = space.show_gizmo
-
         space.overlay.show_overlays = False
         space.show_gizmo            = False
 
         # Shading settings...
-        if not style.use_viewport_settings:
-            shading = space.shading
-            light           = shading.light
-            bg_type         = shading.background_type
-            bg_color        = shading.background_color
-            color_type      = shading.color_type
-            single_color    = shading.single_color
-
-            shading.light               = 'FLAT'
-            shading.color_type          = 'SINGLE'
-            shading.single_color        = (1.0, 1.0, 1.0)
-            shading.background_type     = 'VIEWPORT'
-            shading.background_color    = (0.0, 0.0, 0.0)
+        backup_props = {}
+        for key, value in shading_props.items():
+            backup_props[key] = getattr(shading, key)
+            setattr(shading, key, value)
 
         # Offscreen draw 3d viewport.
         #if self.target != target or self.target_location != target.location or self.target_dimensions != target.dimensions:
-
 
         # TODO: OVERLAYS TOGGLE SHOULD BE HERE...
         if settings.is_preset():
@@ -514,12 +518,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         space.overlay.show_overlays     = show_overlays
         space.show_gizmo                = show_gizmo
 
-        if not style.use_viewport_settings:
-            shading.light                   = light
-            shading.background_type         = bg_type
-            shading.background_color        = bg_color
-            shading.color_type              = color_type
-            shading.single_color            = single_color
+        for key, value in backup_props.items():
+            setattr(shading, key, value)
         
         self.settings.dirty = False
         if DEBUG:

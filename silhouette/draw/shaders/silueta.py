@@ -32,13 +32,14 @@ void main()
         if (fragColor.a < .5) {
             discard;
         }
+        fragColor.a = fragColor.r;
+        fragColor.r = 1.0;
     }
     
     fragColor.rgb = mix(bco, co, fragColor.r);
     fragColor.a *= alpha;
 }
 '''
-
 live_frag_shader = '''
 in vec2 texCoord_interp;
 out vec4 fragColor;
