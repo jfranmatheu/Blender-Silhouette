@@ -27,7 +27,7 @@ void main()
 {
     fragColor = texture(i, texCoord_interp);
     
-    if (use_transp == 1.0 && fragColor.r < 0.5) {
+    if (use_transp == 1.0) { // fragColor.r < 0.5
         fragColor.a = smoothstep(0.0, 1.0, fragColor.r * 2.0);
         if (fragColor.a < .5) {
             discard;
