@@ -103,6 +103,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.target_location = Vector((0, 0, 0))
         self.target_rotation = Vector((0, 0, 0))
         self.target_dimensions = Vector((0, 0, 0))
+        self.target_scale = Vector((0, 0, 0))
         #self.target_scale = Vector((1, 1, 1)) # Used for multi-objects as collections...
 
         #self.camera = None
@@ -318,14 +319,23 @@ class VIEW3D_GT_silhouette(SILUETA):
 
                 if to_check_ob:
                     #print("LOCATION:", self.target_location, to_check_ob.location)
-                    if self.target_location != to_check_ob.location:
-                        self.redraw_silhouette(context)
-                        self.target_location = to_check_ob.location.copy()
-                    elif self.target_dimensions != to_check_ob.dimensions:
-                        self.redraw_silhouette(context)
-                        self.target_dimensions = to_check_ob.dimensions.copy()
-                    elif self.check_rotation_change(to_check_ob):
-                        self.redraw_silhouette(context)
+                    if context.mode == 'OBJECT':
+                        if self.target_location != to_check_ob.location:
+                            self.target_location = to_check_ob.location.copy()
+                            self.redraw_silhouette(context)
+                            return
+                        elif self.target_scale != to_check_ob.scale:
+                            self.target_scale = to_check_ob.scale.copy()
+                            self.target_dimensions = to_check_ob.dimensions.copy()
+                            self.redraw_silhouette(context)
+                            return
+                        elif self.target_dimensions != to_check_ob.dimensions:
+                            self.target_dimensions = to_check_ob.dimensions.copy()
+                            self.redraw_silhouette(context)
+                            return
+                        elif self.check_rotation_change(to_check_ob):
+                            self.redraw_silhouette(context)
+                            return
                     
                     # BUG: For some reason scale!=1,1,1 doesn't affect with multiple objects matrix algorithm...
                     #elif self.multi_object and self.target_scale != to_check_ob.scale:

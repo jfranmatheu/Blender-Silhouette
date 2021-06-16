@@ -138,7 +138,10 @@ def get_view_matrix_from_view_preset(target: Object, view: str = 'FRONT') -> Mat
     # NOTE: HACK: To fix depth bug if scale is different.
     for i, axis in enumerate(getattr(BOUNDBOX_NORM, view, BOUNDBOX_NORM.FRONT)()):
         if axis != 0:
-            v_trans[i] *= target.scale[i]
+            #if i == 2:
+            #    v_trans[i] += (axis * 1/0.015)
+            v_trans[i] *= abs(max(1, target.scale[i]))
+            v_trans[i] += (axis * 0.001)
 
     return get_rot_matrix_from_view_preset(view) @ Matrix.Translation(v_trans)
 
@@ -219,13 +222,13 @@ def get_ortho_projection_matrix_from_view_preset(target: Object, view: str = 'FR
 
     # HACK.
     frame_scale_factor = min(width, height) * 0.00667 / 256
-    scale_factor = min(1/max(dim_plane.x, 1), 1/max(dim_plane.y, 1)) * 0.00667 # Magic value.
+    scale_factor = min(1/max(dim_plane.x, 0.01), 1/max(dim_plane.y, 0.01)) * 0.00667 # Magic value.
     # border_threshold = 0.0035 # 0.004 for full.
     mat[0][0] = width  * scale_factor # width  * border_threshold # 1 / width
     mat[1][1] = height * scale_factor # height * border_threshold # 1 / height
 
     Zfar = 1000.0
-    Znear = 0.01
+    Znear = 0.001
     # HACK. Positive will show geometry as black silhouette.
     mat[2][2] = -( 2 / (Zfar - Znear) )          # -0.002
     mat[2][3] = -( (Zfar+Znear) / (Zfar-Znear) ) # -1.0002
