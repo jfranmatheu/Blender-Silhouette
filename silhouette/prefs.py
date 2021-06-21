@@ -35,8 +35,7 @@ class SilhouetteAddonPreferences(AddonPreferences):
         #row.enabled = not style.use_viewport_settings
         
         subcol = box.column(align=True)
-        
-        subcol.prop(style, "use_transparency")
+
         subcol.prop(style, "show_in_front")
         
         #subcol.separator()
@@ -50,9 +49,21 @@ class SilhouetteAddonPreferences(AddonPreferences):
         subcol.use_property_decorate = False
 
         subcol.prop(style, "color")
-        if not style.use_transparency:
-            subcol.prop(style, "bg_color")
+
+        row = subcol.row(align=True)
+        row.prop(style, 'show_background', text='Background')
+        bgcol = row.column()
+        bgcol.active = style.show_background
+        bgcol.prop(style, 'bg_color', text='')
+
+        row = subcol.row(align=True)
+        row.prop(style, 'show_view_name', text='View Name')
+        bgcol = row.column()
+        bgcol.active = style.show_view_name
+        bgcol.prop(style, 'text_color', text='')
+
         subcol.row().prop(style, "opacity", slider=True)
+
 
 
 def get_prefs(ctx):

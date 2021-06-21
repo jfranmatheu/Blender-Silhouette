@@ -24,7 +24,7 @@ def Draw_Silueta(i, x, y, w, h, style):
 def Draw_Live_Silueta(i, x, y, w, h, style, shader = shader_live_silueta):
     if style.dirty:
         shader.bind()
-        shader.uniform_float("use_transp", 1.0 if style.use_transparency else 0.0)
+        shader.uniform_float("use_transp", 0.0 if style.show_background else 1.0)
         shader.uniform_float("alpha", style.opacity)
         shader.uniform_float("co", style.color)
         shader.uniform_float("bco", style.bg_color)

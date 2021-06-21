@@ -141,7 +141,7 @@ def get_view_matrix_from_view_preset(target: Object, view: str = 'FRONT') -> Mat
             #if i == 2:
             #    v_trans[i] += (axis * 1/0.015)
             v_trans[i] *= abs(max(1, target.scale[i]))
-            v_trans[i] += (axis * 0.001)
+            v_trans[i] += (axis * 0.0001)
 
     return get_rot_matrix_from_view_preset(view) @ Matrix.Translation(v_trans)
 
@@ -221,14 +221,40 @@ def get_ortho_projection_matrix_from_view_preset(target: Object, view: str = 'FR
     mat = Matrix.Identity(4) # Matrix.OrthoProjection(axis, 4)
 
     # HACK.
-    frame_scale_factor = min(width, height) * 0.00667 / 256
-    scale_factor = min(1/max(dim_plane.x, 0.01), 1/max(dim_plane.y, 0.01)) * 0.00667 # Magic value.
+    #frame_scale_factor = max(width, height) / 256
+    #scale_factor = min(1/max(dim_plane.x, 0.0001), 1/max(dim_plane.y, 0.0001)) * 0.00667 # * frame_scale_factor) # Magic value.
     # border_threshold = 0.0035 # 0.004 for full.
-    mat[0][0] = width  * scale_factor # width  * border_threshold # 1 / width
-    mat[1][1] = height * scale_factor # height * border_threshold # 1 / height
+    scale_x = width/256
+    scale_y = height/256
+
+    # Fix new off dimension.
+    #max_scale = max(scale_x, scale_y)
+    #max_dim = max(dim_plane.x, dim_plane.y)
+
+    ob_dim_ratio = dim_plane.x/dim_plane.y
+    sh_dim_ratio = scale_x/scale_y
+
+    if ob_dim_ratio > sh_dim_ratio:
+        scale_y *= (dim_plane.x / dim_plane.y)
+        scale_y *= ((height/256) / scale_x)
+
+    elif ob_dim_ratio < sh_dim_ratio:
+        scale_x *= (dim_plane.y / dim_plane.x)
+        scale_x *= ((width/256) / scale_y)
+
+    mat[0][0] = width  * 1/max(dim_plane.x*scale_x, 0.0001) * 0.00667 #max(0.00667, 0.00667*ob_dim_ratio*scale_ratio)
+    mat[1][1] = height * 1/max(dim_plane.y*scale_y, 0.0001) * 0.00667 #max(0.00667, 0.00667*ob_dim_ratio*scale_ratio)
+
+    # Stay same size.
+    #mat[0][0] = width  * 1/max(dim_plane.x*scale_x, 0.0001) * (0.00667*1/scale_x)# * max_scale
+    #mat[1][1] = height * 1/max(dim_plane.y*scale_y, 0.0001) * (0.00667*1/scale_y)# * max_scale
+
+    # border_threshold = 0.0035 # 0.004 for full.
+    #mat[0][0] = width  * max(dim_plane.x, 0.0001) * 0.0001
+    #mat[1][1] = height * max(dim_plane.y, 0.0001) * 0.0001
 
     Zfar = 1000.0
-    Znear = 0.001
+    Znear = 0.0001
     # HACK. Positive will show geometry as black silhouette.
     mat[2][2] = -( 2 / (Zfar - Znear) )          # -0.002
     mat[2][3] = -( (Zfar+Znear) / (Zfar-Znear) ) # -1.0002
@@ -254,14 +280,14 @@ def get_multi_ortho_projection_matrix_from_view_preset(targets, view: str = 'FRO
     mat = Matrix.Identity(4) # Matrix.OrthoProjection(axis, 4)
 
     # HACK.
-    frame_scale_factor = min(width, height) * 0.00667 / 256
-    scale_factor = min(1/max(dim_plane.x, 1), 1/max(dim_plane.y, 1)) * 0.00667 # Magic value.
+    scale_factor = min(1/max(dim_plane.x, 0.01), 1/max(dim_plane.y, 0.01)) * 0.00667 # Magic value.
+
     # border_threshold = 0.0035 # 0.004 for full.
     mat[0][0] = width  * scale_factor # width  * border_threshold # 1 / width
     mat[1][1] = height * scale_factor # height * border_threshold # 1 / height
 
     Zfar = 1000.0
-    Znear = 0.01
+    Znear = 0.0001
     # HACK. Positive will show geometry as black silhouette.
     mat[2][2] = -( 2 / (Zfar - Znear) )          # -0.002
     mat[2][3] = -( (Zfar+Znear) / (Zfar-Znear) ) # -1.0002

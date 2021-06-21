@@ -111,7 +111,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         #self.camera_location = Vector((0, 0, 0))
         #self.camera_rotation = Vector((0, 0, 0))
 
-        self.position = (50, 50)
+        self.position = Vector((50, 50))
         self.width  = 256
         self.height = 256
 
@@ -120,13 +120,15 @@ class VIEW3D_GT_silhouette(SILUETA):
         #self.init_offscreen()
         #self.init_graphics()
 
-    def update_dimensions(self, context):
+    def update_dimensions(self, context, update_offscreen: bool = True):
         if self.settings.is_navigation() and self.settings.use_region_dimensions:
             scale = self.settings.scale
             self.width = int(context.region.width * scale)
             self.height = int(context.region.height * scale)
         else:
             self.width, self.height = self.settings.dimensions
+        if update_offscreen:
+            self.update_offscreen()
 
     def init(self, context):
         if DEBUG:
@@ -140,8 +142,6 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.settings.dirty = True # HACK. Force init update...
         #self.view = self.settings.view_preset
 
-        self.update_dimensions(context)
-
         self.target = None
         self.target_type = self.settings.target_type
         self.act_ob = context.active_object
@@ -149,6 +149,8 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.mode = context.mode
         self.time = get_time()
         self.sculpt_update_interval = 5.0
+
+        self.update_dimensions(context, False)
 
         self.init_offscreen()
         self.init_graphics()
@@ -162,6 +164,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         #print("\t-", self.draw_handler)
 
     def refresh(self, context):
+        self.__class__._instance = self
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
         self.ctx_area = context.area
@@ -169,7 +172,6 @@ class VIEW3D_GT_silhouette(SILUETA):
         # Ensure that draw handler is initialized. (enabling/disabling/enabling BUG)
         #if self.style.dirty:
         #    self.update_shader(context)
-        pass
 
 
     ''' Event handle. '''
@@ -221,7 +223,7 @@ class VIEW3D_GT_silhouette(SILUETA):
 
     def repaint(self) -> None:
         ##print("GZ: Repaint")
-        self.update_shader()
+        #self.update_shader()
         self.update_batch()
 
     def update_batch(self) -> None:
@@ -235,7 +237,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         shader = self.shader
         style = self.style
         shader.bind()
-        shader.uniform_float("use_transp", 1.0 if style.use_transparency else 0.0)
+        shader.uniform_float("use_transp", 0.0 if style.show_background else 1.0)
         shader.uniform_float("alpha", style.opacity)
         shader.uniform_float("co", style.color)
         shader.uniform_float("bco", style.bg_color)
@@ -275,6 +277,7 @@ class VIEW3D_GT_silhouette(SILUETA):
     def draw_silhouette_from_view_preset(self, context):
         if self.settings.dirty:
             self.update_dimensions(context)
+            self.update_batch()
             self.update_targets(context) # full update in case property of target type or target changed.
 
         elif context.active_object: # and context.active_object.type in 'MESH':
@@ -388,8 +391,8 @@ class VIEW3D_GT_silhouette(SILUETA):
             if not self.settings.view_camera:
                 return
 
-            if not self.camera_obj or self.settings.view_camera != self.camera_obj.data:
-                self.camera_obj = bpy.data.objects.get(self.settings.view_camera.name, None)
+            if not self.camera_obj or self.settings.view_camera != self.camera_obj:
+                self.camera_obj = self.settings.view_camera #bpy.data.objects.get(self.settings.view_camera.name, None)
                 if not self.camera_obj:
                     return
 
@@ -424,7 +427,6 @@ class VIEW3D_GT_silhouette(SILUETA):
 
         if self.settings.refresh_offscreen:
             self.update_dimensions(context)
-            self.update_offscreen()
             self.settings.refresh_offscreen = False
             self.settings.dirty = False
             #self.redraw_silhouette(context)
@@ -458,6 +460,12 @@ class VIEW3D_GT_silhouette(SILUETA):
         if self.style.dirty:
             self.update_shader(context)
         self.batch.draw(self.shader)
+
+        if self.style.show_view_name:
+            if view_mode == 'PRESET':
+                Draw_Text(self.position[0]+5, self.position[1]+5, self.settings.view_preset, 12, 0, *self.style.text_color, True) # * scale
+            elif view_mode == 'CAMERA' and self.settings.view_camera:
+                Draw_Text(self.position[0]+5, self.position[1]+5, self.settings.view_camera.name, 12, 0, *self.style.text_color, True) # * scale
 
         if not style.show_in_front:
             glDisable(GL_DEPTH_TEST)
@@ -513,6 +521,14 @@ class VIEW3D_GT_silhouette(SILUETA):
 
         # TODO: OVERLAYS TOGGLE SHOULD BE HERE...
         if settings.is_preset():
+            '''
+            adaptive = settings.is_adaptive()
+            if adaptive:
+                min_dim_reg = min(context.region.width, context.region.height)
+                width = height = min_dim_reg * settings.scale
+            else:
+                width, height = self.width, self.height
+            '''
             mat = get_magic_matrices_from_view_and_fixed_dimensions(self.target, self.multi_object, settings.view_preset, self.width, self.height)
         elif self.camera_obj and settings.is_camera():
             mat = get_cam_matrices(context, self.camera_obj, self.width, self.height)

@@ -30,8 +30,8 @@ class SILHOUETTE_STYLE(PropertyGroup):
 
     use_viewport_settings : BoolProperty(default=False, name="Use Viewport Settings", update=mark_dirty)
 
-    use_transparency : BoolProperty(default=False, name="Use Transparent Background", update=mark_dirty, description="Skip drawing silhouette background")
-    show_in_front : BoolProperty(default=False, name="Show In Front", description="Draws your silhouette in front of your geometry/objects")
+    show_background : BoolProperty(default=True, name="Show Background", update=mark_dirty, description="When disabled, the background will be transparent")
+    show_in_front : BoolProperty(default=False, name="Show in front of geometry", description="Draws your silhouette in front of your geometry/objects")
 
     use_flat_style : BoolProperty(default=True, name="Use Flat Style")
     show_shadows : BoolProperty(default=False, name="Show Shadows")
@@ -40,8 +40,11 @@ class SILHOUETTE_STYLE(PropertyGroup):
     color : FloatVectorProperty(default=(1, 1, 1), min=0, max=1,name="Color", subtype='COLOR', update=mark_dirty)
     bg_color : FloatVectorProperty(default=(0, 0, 0), min=0, max=1,name="Background Color", subtype='COLOR', update=mark_dirty)
     opacity : FloatProperty(default=1, max=1, min=0.01, step=0.1, name="Opacity", update=mark_dirty)
+    text_color : FloatVectorProperty(default=(.9, .62, .12, 1), min=0, max=1, size=4, name="Text Color", subtype='COLOR')
 
     dirty : BoolProperty(default=True)
+
+    show_view_name : BoolProperty(default=False, name="Show View Name", description="Show view name ONLY when using 'Preset' and 'Camera' view modes")
 
 
 class SILHOUETTE_SETTINGS(PropertyGroup):
@@ -57,6 +60,14 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
             return
         if self.target_object.type != 'MESH':
             self.target_object = None
+            return
+        self.mark_dirty(context)
+
+    def select_camera(self, context):
+        if not self.view_camera:
+            return
+        if self.view_camera.type != 'CAMERA':
+            self.view_camera = None
             return
         self.mark_dirty(context)
 
@@ -119,11 +130,20 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
     def is_preset(self): return self.view_mode == 'PRESET'
     def is_camera(self): return self.view_mode == 'CAMERA'
     def is_navigation(self): return self.view_mode == 'NAV'
+    def is_adaptive(self): return self.scaling_mode == 'AUTO'
 
     use_region_dimensions : BoolProperty(default=True, name='Use Viewport Proportions', description="Sync silhouette dimensions with 3d viewport's editor proportions", update=mark_off_dirty)
     scale : FloatProperty(default=.24, min=0.1, max=.5, step=0.05, name='Scale', update=mark_off_dirty, description="Scale silhouette by using 3d viewport's editor proportions and dimensions")
 
     dimensions : IntVectorProperty(default=(256, 256), min=64, max=1024, update=mark_off_dirty, name="Dimensions", size=2, subtype='XYZ', step=16)
+    scaling_mode : EnumProperty(
+        items = (
+            ('AUTO', "Auto", "Automatic. It will adapt the silhouette dimensions to the mesh dimensions"),
+            ('MANUAL', "Manual", "Manual. Use the dimensions properties to manually set the silhouette width and height")
+        ),
+        default = 'AUTO',
+        name = "Scaling Mode"
+    )
 
     dirty : BoolProperty(default=False)
     refresh_offscreen : BoolProperty(default=False)
@@ -149,7 +169,7 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         update=mark_dirty
     )
 
-    view_camera : PointerProperty(type=Camera, name="View Camera", update=mark_dirty)
+    view_camera : PointerProperty(type=Object, name="View Camera", update=select_camera)
 
     use_multi_view : BoolProperty(default=False, name="Use Multi View", description="Toggle multi view silhouettes", update=mark_dirty)
 

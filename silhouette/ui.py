@@ -7,14 +7,15 @@ class VIEW3D_PT_silhouette(Panel):
     bl_context = "NONE"
     bl_space_type = "VIEW_3D"
     bl_region_type = "HEADER"
-    bl_ui_units_x = 20
+    bl_ui_units_x = 22
 
     #@classmethod
     #def poll(cls, context):
     #    return False
 
     def draw_view_preset(self, settings, left_layout, content):
-        content.label(text="Target")
+        content = content.box()
+        content.label(text="TARGET :", icon='TRACKER')
         content.prop(settings, 'target_type', text="Type")
         if settings.target_type == 'OBJECT':
             content.prop(settings, 'target_object', text="")
@@ -25,6 +26,8 @@ class VIEW3D_PT_silhouette(Panel):
         pass
 
     def draw_view_nav(self, settings, left_layout, content):
+        content = content.box()
+        content.label(text="TRANSFORM :", icon='FULLSCREEN_ENTER')
         content.use_property_split = False
         content.prop(settings, 'use_region_dimensions')
         
@@ -66,27 +69,44 @@ class VIEW3D_PT_silhouette(Panel):
 
         options = col.row()
         options.use_property_split = False
+        options.scale_y = 1.5
         options.prop(settings, 'view_mode', expand=True, text="PRESET")
 
         header = col.box()
         header.label(text="Settings", icon='SETTINGS')
 
-        content = col.box()
-        if not settings.is_navigation():
-            content.prop(settings, 'view_'+settings.view_mode.lower())
+        content = col.box().column(align=True)
 
-            dims = content.row()
-            dims.use_property_split = False
-            dims.row(align=True).prop(settings, 'dimensions', slider=True)
-
+        view_mode = 'view_'+settings.view_mode.lower()
         if settings.view_mode == 'PRESET':
+            box = content.box()
+            box.label(text="VIEW :", icon='RESTRICT_VIEW_OFF')
+            box.prop(settings, view_mode, text="Preset")
             self.draw_view_preset(settings, left_layout, content)
         elif settings.view_mode == 'CAMERA':
+            box = content.box()
+            box.label(text="VIEW :", icon='RESTRICT_VIEW_OFF')
+            box.prop(settings, view_mode, text="Camera")
             self.draw_view_camera(settings, left_layout, content)
         else:
             self.draw_view_nav(settings, left_layout, content)
 
-        self.draw_style(left_layout, prefs.style)
+        if not settings.is_navigation():
+            content = content.box()
+            content.label(text="TRANSFORM :", icon='FULLSCREEN_ENTER')
+            if settings.view_mode == 'PRESET':
+                #col = content.column(align=True)
+                #col.row(align=True).prop(settings, 'scaling_mode', text='Mode', expand=True)
+                
+                if not settings.is_adaptive():
+                    content.row(align=True).prop(settings, 'dimensions', slider=True)
+                else:
+                    content.row(align=True).prop(settings, 'scale', slider=True)
+            else:
+                dims = content.row()
+                dims.row(align=True).prop(settings, 'dimensions', slider=True)
+
+        self.draw_style(left_layout, prefs.style, False)
 
         self.draw_common_settings(settings, left_layout)
 
@@ -142,26 +162,33 @@ class VIEW3D_PT_silhouette(Panel):
             #box.prop(rt, 'bg_color', text="Background Color")
             #box.prop(rt, 'in_front', text="Show In Front")
 
-            self.draw_style(content, prefs.live_style)
+            self.draw_style(content, prefs.live_style, True)
 
-    def draw_style(self, layout, style):
+    def draw_style(self, layout, style, is_live_view: bool):
         style_layout = layout.column(align=True)
+        style_layout.use_property_decorate = False
+        style_layout.use_property_split = False
 
         header = style_layout.box()
         header.label(text="Style", icon='SHADERFX')
 
         content = style_layout.box().column(align=True)
-        content.use_property_split = True
-        content.use_property_decorate = False
+        
+        content.row().prop(style, "color")
+        row = content.row(align=True)
+        row.prop(style, 'show_background', text='Background')
+        bgcol = row.column()
+        bgcol.active = style.show_background
+        bgcol.prop(style, 'bg_color', text='')
 
-        content.prop(style, "color")
-        if not style.use_transparency:
-            content.prop(style, "bg_color")
-
-        row = content.row()
-        row.use_property_split = False
-        row.prop(style, "use_transparency")
+        if not is_live_view:
+            row = content.row(align=True)
+            row.prop(style, 'show_view_name', text='View Name')
+            bgcol = row.column()
+            bgcol.active = style.show_view_name
+            bgcol.prop(style, 'text_color', text='')
 
         content.row().prop(style, "opacity", slider=True)
 
-        content.prop(style, 'show_in_front', text="Show In Front")
+        row = content.row()
+        row.prop(style, 'show_in_front')
