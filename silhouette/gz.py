@@ -110,8 +110,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.camera_obj = None
         #self.camera_location = Vector((0, 0, 0))
         #self.camera_rotation = Vector((0, 0, 0))
-
-        self.position = Vector((50, 50))
+        self.position = Vector((50, 45))
         self.width  = 256
         self.height = 256
 
@@ -134,12 +133,20 @@ class VIEW3D_GT_silhouette(SILUETA):
         if DEBUG:
             print("GZ: INIT")
 
+        off_x = 10
+        for reg in context.area.regions:
+            if reg.type == 'TOOLS':
+                off_x += reg.width
+                break    
+    
+        self.position = Vector((off_x, 45))
+
         self.offscreen = None
         self.act_op = id(context.active_operator) if context.active_operator else None
 
         self.style = get_prefs(context).style
         self.settings = context.scene.silhouette
-        self.settings.dirty = True # HACK. Force init update...
+        
         #self.view = self.settings.view_preset
 
         self.target = None
@@ -159,6 +166,8 @@ class VIEW3D_GT_silhouette(SILUETA):
 
         self.__class__.stop_draw_handler()
         self.start_draw_handler(context)
+
+        self.settings.dirty = True # HACK. Force init update...
 
         #print("\t-", self.style)
         #print("\t-", self.draw_handler)

@@ -141,7 +141,7 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
             ('AUTO', "Auto", "Automatic. It will adapt the silhouette dimensions to the mesh dimensions"),
             ('MANUAL', "Manual", "Manual. Use the dimensions properties to manually set the silhouette width and height")
         ),
-        default = 'AUTO',
+        default = 'MANUAL',
         name = "Scaling Mode"
     )
 

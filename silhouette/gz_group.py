@@ -45,7 +45,7 @@ class VIEW3D_GGT_silhouettes_gizmos(SILUETAS):
     bl_label = "GizmoGroup: Silhouette's Gizmos"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
-    bl_options = {'PERSISTENT', 'SCALE', 'DEPTH_3D'}
+    bl_options = {'PERSISTENT', 'SCALE'}
 
     @classmethod
     def poll(cls, context):
@@ -104,27 +104,37 @@ class VIEW3D_GGT_silhouettes_gizmos(SILUETAS):
         self.gizmo_top = gz
 
     def draw_prepare(self, context):
+        off_x = 10
+        for reg in context.area.regions:
+            if reg.type == 'TOOLS':
+                off_x += reg.width
+                break 
         silhouette = context.scene.silhouette
         width = silhouette.dimensions[0]
 
-        self.gizmo_top.matrix_basis[0][3]   = 50 + width + 16
-        self.gizmo_top.matrix_basis[1][3]   = 50 + 16
+        self.gizmo_top.matrix_basis[0][3]   = off_x + 76
+        self.gizmo_top.matrix_basis[1][3]   = 45 - 16
 
-        self.gizmo_side.matrix_basis[0][3]  = 50 + width + 16
-        self.gizmo_side.matrix_basis[1][3]  = 50 + 46
+        self.gizmo_side.matrix_basis[0][3]  = off_x + 46
+        self.gizmo_side.matrix_basis[1][3]  = 45 - 16
 
-        self.gizmo_front.matrix_basis[0][3] = 50 + width + 16
-        self.gizmo_front.matrix_basis[1][3] = 50 + 76
+        self.gizmo_front.matrix_basis[0][3] = off_x + 16
+        self.gizmo_front.matrix_basis[1][3] = 45 - 16
 
     def refresh(self, context):
+        off_x = 10
+        for reg in context.area.regions:
+            if reg.type == 'TOOLS':
+                off_x += reg.width
+                break  
         silhouette = context.scene.silhouette
         width = silhouette.dimensions[0]
 
-        self.gizmo_top.matrix_basis[0][3]   = 50 + width + 16
-        self.gizmo_top.matrix_basis[1][3]   = 50 + 16
+        self.gizmo_top.matrix_basis[0][3]   = off_x + 76
+        self.gizmo_top.matrix_basis[1][3]   = 45 - 16
 
-        self.gizmo_side.matrix_basis[0][3]  = 50 + width + 16
-        self.gizmo_side.matrix_basis[1][3]  = 50 + 46
+        self.gizmo_side.matrix_basis[0][3]  = off_x + 46
+        self.gizmo_side.matrix_basis[1][3]  = 45 - 16
 
-        self.gizmo_front.matrix_basis[0][3] = 50 + width + 16
-        self.gizmo_front.matrix_basis[1][3] = 50 + 76
+        self.gizmo_front.matrix_basis[0][3] = off_x + 16
+        self.gizmo_front.matrix_basis[1][3] = 45 - 16
