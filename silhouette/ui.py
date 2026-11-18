@@ -118,6 +118,9 @@ class VIEW3D_PT_silhouette(Panel):
         if not settings.is_navigation():
             self.draw_common_settings(settings, left_layout)
 
+        from . support import draw_support
+        draw_support(layout)
+
 
     
     def draw_style(self, layout, style):

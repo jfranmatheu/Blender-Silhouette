@@ -12,7 +12,10 @@ class SilhouetteAddonPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        
+
+        from . support import draw_support
+        draw_support(layout)
+
         row = layout.row()
         
         self.draw_style(row, self.style, 'Silhouette Style')
