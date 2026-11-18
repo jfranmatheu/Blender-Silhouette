@@ -114,7 +114,9 @@ class VIEW3D_PT_silhouette(Panel):
 
         self.draw_style(left_layout, prefs.style)
 
-        self.draw_common_settings(settings, left_layout)
+        # El auto-update de sculpt solo tiene sentido en Preset y Camera, Navigation ya se redibuja con el viewport.
+        if not settings.is_navigation():
+            self.draw_common_settings(settings, left_layout)
 
 
     

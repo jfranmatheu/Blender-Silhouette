@@ -419,7 +419,7 @@ class VIEW3D_GT_silhouette(SILUETA):
             self.mode = context.mode
             return
 
-        if context.mode == 'SCULPT': # and to_check_ob:
+        if context.mode == 'SCULPT' and not is_navigation: # and to_check_ob:
             if self.settings.use_sculpt_auto_update:
                 if get_time() - self.time > self.sculpt_update_interval:
                     #to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
@@ -483,7 +483,7 @@ class VIEW3D_GT_silhouette(SILUETA):
             RstDepth()
         RstBlend()
 
-        if context.mode == 'SCULPT' and not self.settings.use_sculpt_auto_update:
+        if context.mode == 'SCULPT' and not self.settings.use_sculpt_auto_update and not self.settings.is_navigation():
             Draw_Text(self.position[0] + 5, self.position[1] + 5, "Tap to refresh!", 12, 0, 1.0, .06, .9, .9, True)
 
         #print("Drawing Offscreen... END")
