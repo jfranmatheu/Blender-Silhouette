@@ -15,11 +15,10 @@ bl_info = {
     "name" : "Silhouette",
     "author" : "J. Fran Matheu (@jfranmatheu)",
     "description" : "Quickly preview silhouettes of your mesh over the viewport from different view presets",
-    "blender" : (2, 93, 0),
-    "version" : (2, 1, 0),
+    "blender" : (5, 3, 0),
+    "version" : (2, 2, 0),
     "location" : "3D Viewport",
-    "warning" : "This 2.0 version is a rewrite from the 1.X series, you should expect quite different things",
-    "category" : "Generic"
+    "category" : "3D View"
 }
 
 DEBUG = False

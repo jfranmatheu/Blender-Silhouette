@@ -9,8 +9,6 @@ class SilhouetteAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
     style : PointerProperty(type=SILHOUETTE_STYLE, name="Default Silhouette Style")
-    live_style : PointerProperty(type=SILHOUETTE_STYLE, name="Default Live Silhouette Style")
-    show_beta_features : BoolProperty(default=True)
 
     def draw(self, context):
         layout = self.layout
@@ -18,9 +16,6 @@ class SilhouetteAddonPreferences(AddonPreferences):
         row = layout.row()
         
         self.draw_style(row, self.style, 'Silhouette Style')
-        self.draw_style(row, self.live_style, 'Live Silhouette Style')
-
-        layout.prop(self, 'show_beta_features', text="Show BETA features")
 
     def draw_style(self, layout, style, title):
         col = layout.column(align=True)

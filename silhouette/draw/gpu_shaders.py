@@ -1,17 +1,34 @@
-from gpu.types import GPUShader as Shader
-from gpu.shader import from_builtin
+import bpy
+from gpu.types import GPUShaderCreateInfo, GPUStageInterfaceInfo
+from gpu.shader import from_builtin, create_from_info
 
-from . shaders.point import *
 from . shaders.silueta import *
 
 
-shader_2d_image = from_builtin('2D_IMAGE')
-shader_2d_color_unif = from_builtin('2D_UNIFORM_COLOR') # 2D_FLAT_COLOR # 2D_SMOOTH_COLOR
-shader_2d_color_flat = from_builtin('2D_FLAT_COLOR') # 2D_FLAT_COLOR # 2D_SMOOTH_COLOR
-shader_2d_color_smooth = from_builtin('2D_SMOOTH_COLOR') # 2D_FLAT_COLOR # 2D_SMOOTH_COLOR
-shader_3d_color_unif = from_builtin('3D_UNIFORM_COLOR') # 3D_FLAT_COLOR # 3D_SMOOTH_COLOR
-#shader_2d_image_alpha = Shader(vertex_shader, frag_shader)
-#shader_2d_image_alpha_2 = Shader(vertex_shader, frag_shader_2)
-shader_2d_pt = Shader(POINT_VS, POINT_FS)
-shader_silueta = Shader(vert_shader, frag_shader)
-shader_live_silueta = Shader(vert_shader, live_frag_shader)
+def _create_silueta_shader(frag_source):
+    iface = GPUStageInterfaceInfo("silhouette_iface")
+    iface.smooth('VEC2', "texCoord_interp")
+
+    info = GPUShaderCreateInfo()
+    info.push_constant('MAT4', "ModelViewProjectionMatrix")
+    info.push_constant('FLOAT', "alpha")
+    info.push_constant('FLOAT', "use_transp")
+    info.push_constant('VEC3', "co")
+    info.push_constant('VEC3', "bco")
+    info.sampler(0, 'FLOAT_2D', "image")
+    info.vertex_in(0, 'VEC2', "pos")
+    info.vertex_in(1, 'VEC2', "texCoord")
+    info.vertex_out(iface)
+    info.fragment_out(0, 'VEC4', "fragColor")
+    info.vertex_source(vert_shader)
+    info.fragment_source(frag_source)
+    return create_from_info(info)
+
+
+# En modo background no hay contexto GPU, asi que no creamos nada.
+if bpy.app.background:
+    shader_2d_image = shader_2d_color_unif = shader_silueta = None
+else:
+    shader_2d_image = from_builtin('IMAGE')
+    shader_2d_color_unif = from_builtin('UNIFORM_COLOR')
+    shader_silueta = _create_silueta_shader(frag_shader)

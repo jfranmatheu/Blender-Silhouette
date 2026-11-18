@@ -7,12 +7,6 @@ from gpu.types import GPUOffScreen
 from gpu_extras.batch import batch_for_shader
 import bpy
 from time import time as get_time
-from bgl import (
-    glEnable, glDisable, GL_BLEND, GL_DEPTH_TEST,
-    glBlendFunc, GL_SRC_COLOR, GL_ONE_MINUS_CONSTANT_ALPHA,
-    glActiveTexture, glBindTexture, GL_TEXTURE0, GL_TEXTURE_2D
-)
-
 from functools import partial
 
 from . import DEBUG
@@ -20,9 +14,9 @@ from . matrix import get_magic_matrices_from_view_and_fixed_dimensions, get_cam_
 from . prefs import get_prefs
 from . utils import point_inside_rect
 from . draw.text import Draw_Text
+from . draw.gpu_fun import SetDepth, RstDepth, SetBlend, RstBlend
+from . draw.silueta import update_silueta_uniforms
 
-
-import bpy
 
 from bpy.app.handlers import persistent
 @persistent
@@ -167,7 +161,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.__class__.stop_draw_handler()
         self.start_draw_handler(context)
 
-        self.settings.dirty = True # HACK. Force init update...
+        self.settings.rt.dirty = True # HACK. Force init update...
 
         #print("\t-", self.style)
         #print("\t-", self.draw_handler)
@@ -179,7 +173,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.ctx_area = context.area
         #print("GZ: REFRESH")
         # Ensure that draw handler is initialized. (enabling/disabling/enabling BUG)
-        #if self.style.dirty:
+        #if self.style.rt.dirty:
         #    self.update_shader(context)
 
 
@@ -193,7 +187,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         #print("TEST SELECT...")
 
         # NOTE: removed in 2.1.6
-        ##if self.style.dirty:
+        ##if self.style.rt.dirty:
         ##    self.update_shader(ctx)
         return 1 if point_inside_rect(*loc, *self.position, self.width, self.height) else -1
 
@@ -217,6 +211,20 @@ class VIEW3D_GT_silhouette(SILUETA):
         if DEBUG:
             print("GZ: EXIT")
 
+    @staticmethod
+    def touch_sculpt_mesh(ob) -> None:
+        # HACK. Fuerza a sculpt a refrescar la malla y pedimos un nuevo silhouette.
+        try:
+            ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
+        except ReferenceError:
+            return
+        if VIEW3D_GT_silhouette._instance:
+            VIEW3D_GT_silhouette._instance.settings.rt.force_refresh = True
+        for window in bpy.context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.tag_redraw()
+
     def time_function(self, wait_time: float, func: callable, *args) -> None:
         timers.register(partial(func, *args), first_interval=wait_time) 
 
@@ -236,21 +244,16 @@ class VIEW3D_GT_silhouette(SILUETA):
         self.update_batch()
 
     def update_batch(self) -> None:
-        from . draw.geo import get_silu_verts
-        self.batch = batch_for_shader(self.shader, 'TRI_FAN', { "pos" : get_silu_verts(*self.position, self.width, self.height), "texCoord": ((0, 1), (0, 0), (1, 0), (1, 1)) },)
+        from . draw.geo import get_silu_verts, silu_uvs
+        self.batch = batch_for_shader(self.shader, 'TRI_STRIP', { "pos" : get_silu_verts(*self.position, self.width, self.height), "texCoord": silu_uvs },)
         ##print("\t-", self.batch)
 
     def update_shader(self, ctx = None) -> None:
         #if DEBUG:
         #print("*** SHADER UPDATED ***")
-        shader = self.shader
         style = self.style
-        shader.bind()
-        shader.uniform_float("use_transp", 0.0 if style.show_background else 1.0)
-        shader.uniform_float("alpha", style.opacity)
-        shader.uniform_float("co", style.color)
-        shader.uniform_float("bco", style.bg_color)
-        style.dirty = False
+        update_silueta_uniforms(self.shader, style)
+        style.rt.dirty = False
 
         if ctx and ctx.area and ctx.area.type == 'VIEW_3D':
             ctx.region.tag_redraw()
@@ -284,7 +287,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         pass
 
     def draw_silhouette_from_view_preset(self, context):
-        if self.settings.dirty:
+        if self.settings.rt.dirty:
             self.update_dimensions(context)
             self.update_batch()
             self.update_targets(context) # full update in case property of target type or target changed.
@@ -379,8 +382,8 @@ class VIEW3D_GT_silhouette(SILUETA):
                                 #to_check_ob.update_tag(refresh={'DATA'}) #OK...
                                 ##to_check_ob.data.update_gpu_tag() # NOPE
                                 #context.window_manager.operators
-                                to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
-                                self.redraw_silhouette(context)
+                                # NOTE: no se puede tocar el Mesh mientras se dibuja, lo hacemos en un timer.
+                                self.time_function(0.0, self.touch_sculpt_mesh, to_check_ob)
                                 self.time = get_time()
 
 
@@ -392,16 +395,17 @@ class VIEW3D_GT_silhouette(SILUETA):
             self.mode = context.mode
 
     def draw_silhouette_from_view_camera(self, context, is_navigation: bool = True):
-        #if self.settings.dirty:
+        #if self.settings.rt.dirty:
         #    self.update_dimensions(context)
-        #    self.settings.dirty = False
+        #    self.settings.rt.dirty = False
         
         if not is_navigation:
-            if not self.settings.view_camera:
+            camera = self.settings.get_camera(context)
+            if not camera:
                 return
 
-            if not self.camera_obj or self.settings.view_camera != self.camera_obj:
-                self.camera_obj = self.settings.view_camera #bpy.data.objects.get(self.settings.view_camera.name, None)
+            if not self.camera_obj or camera != self.camera_obj:
+                self.camera_obj = camera
                 if not self.camera_obj:
                     return
 
@@ -419,7 +423,7 @@ class VIEW3D_GT_silhouette(SILUETA):
             if self.settings.use_sculpt_auto_update:
                 if get_time() - self.time > self.sculpt_update_interval:
                     #to_check_ob.data.remesh_voxel_size *= 1 #OK... Quicker lmao
-                    context.active_object.data.remesh_voxel_size *= 1
+                    self.time_function(0.0, self.touch_sculpt_mesh, context.active_object)
                     #self.redraw_silhouette(context)
                     self.time = get_time()
 
@@ -434,19 +438,20 @@ class VIEW3D_GT_silhouette(SILUETA):
         style = self.style
         view_mode = self.settings.view_mode
 
-        if self.settings.refresh_offscreen:
+        if self.settings.rt.refresh_offscreen:
             self.update_dimensions(context)
-            self.settings.refresh_offscreen = False
-            self.settings.dirty = False
+            self.settings.rt.refresh_offscreen = False
+            self.settings.rt.dirty = False
             #self.redraw_silhouette(context)
             self.repaint()
 
             if self.settings.is_preset():
                 self.update_targets(context) # full update in case property of target type or target changed.
 
-        elif self.settings.force_refresh:
+        elif self.settings.rt.force_refresh:
+            self.settings.rt.force_refresh = False
             self.update_targets(context)
-            self.settings.dirty = False
+            self.settings.rt.dirty = False
 
         if view_mode == 'PRESET':
             self.draw_silhouette_from_view_preset(context)
@@ -458,27 +463,25 @@ class VIEW3D_GT_silhouette(SILUETA):
         #draw_texture_2d(icon, Vector(self.position)+Vector((self.width, 0)), self.width, self.height)
 
         if not style.show_in_front:
-            glEnable(GL_DEPTH_TEST)
-        glEnable(GL_BLEND)
-
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, self.offscreen.color_texture)
+            SetDepth()
+        SetBlend()
 
         # Draw texture.
-        #draw_texture_2d(self.offscreen.color_texture, self.position, self.width, self.height)
-        if self.style.dirty:
-            self.update_shader(context)
+        # NOTE: los push constants no se guardan entre binds en Vulkan, asi que se suben siempre.
+        update_silueta_uniforms(self.shader, style)
+        style.rt.dirty = False
+        self.shader.uniform_sampler("image", self.offscreen.texture_color)
         self.batch.draw(self.shader)
 
         if self.style.show_view_name:
             if view_mode == 'PRESET':
                 Draw_Text(self.position[0]+5, self.position[1]+5, self.settings.view_preset, 12, 0, *self.style.text_color, True) # * scale
-            elif view_mode == 'CAMERA' and self.settings.view_camera:
-                Draw_Text(self.position[0]+5, self.position[1]+5, self.settings.view_camera.name, 12, 0, *self.style.text_color, True) # * scale
+            elif view_mode == 'CAMERA' and self.camera_obj:
+                Draw_Text(self.position[0]+5, self.position[1]+5, self.camera_obj.name, 12, 0, *self.style.text_color, True) # * scale
 
         if not style.show_in_front:
-            glDisable(GL_DEPTH_TEST)
-        glDisable(GL_BLEND)
+            RstDepth()
+        RstBlend()
 
         if context.mode == 'SCULPT' and not self.settings.use_sculpt_auto_update:
             Draw_Text(self.position[0] + 5, self.position[1] + 5, "Tap to refresh!", 12, 0, 1.0, .06, .9, .9, True)
@@ -506,10 +509,6 @@ class VIEW3D_GT_silhouette(SILUETA):
         scene = context.scene
         settings = self.settings
 
-        if settings.is_navigation():
-            if not scene.camera:
-                return
-        
         # Backup. # We want to hide overlays and gizmos for any configuration we have.
         space = context.space_data
         shading = space.shading
@@ -563,7 +562,7 @@ class VIEW3D_GT_silhouette(SILUETA):
         for key, value in backup_props.items():
             setattr(shading, key, value)
         
-        self.settings.dirty = False
+        self.settings.rt.dirty = False
         if DEBUG:
             print("REDRAW SILHOUETTE")
 

@@ -306,4 +306,14 @@ def get_cam_matrices(ctx: 'Context', camera: 'Camera', w: int = 256, h: int = 25
     return camera.matrix_world.inverted(), camera.calc_matrix_camera(ctx.evaluated_depsgraph_get(), x=w, y=h, scale_x=1, scale_y=1)
 
 def get_view_cam_matrices(ctx: 'Context', w: int = 256, h: int = 256):
-    return ctx.space_data.region_3d.view_matrix, ctx.scene.camera.calc_matrix_camera(ctx.evaluated_depsgraph_get(), x=w, y=h, scale_x=1.0, scale_y=1.0)
+    # Usamos la proyeccion real del viewport (no la lente de la camara de escena),
+    # asi la silueta es exactamente lo que ves en el 3D view.
+    r3d = ctx.space_data.region_3d
+    proj = r3d.window_matrix.copy()
+    region = ctx.region
+    if region and region.height and h:
+        # Si la silueta no tiene la misma proporcion que el viewport, corregimos el eje X
+        # para no estirar el modelo (lo que sobre se ve por los lados).
+        fac = (region.width / region.height) / (w / h)
+        proj[0] = proj[0] * fac
+    return r3d.view_matrix, proj

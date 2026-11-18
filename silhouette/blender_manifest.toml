@@ -1,0 +1,15 @@
+schema_version = "1.0.0"
+
+id = "silhouette"
+version = "2.2.0"
+name = "Silhouette"
+tagline = "Preview the silhouette of your mesh over the 3D viewport"
+maintainer = "J. Fran Matheu <@jfranmatheu>"
+type = "add-on"
+
+website = "https://github.com/jfranmatheu/Blender-Silhouette"
+tags = ["3D View", "Sculpt"]
+
+blender_version_min = "5.3.0"
+
+license = ["SPDX:GPL-3.0-or-later"]

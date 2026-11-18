@@ -59,14 +59,20 @@ class DrawContext:
         self.handler = SpaceView3D.draw_handler_add(self.draw, (), 'WINDOW', 'POST_PIXEL')
 
     def check_context(self):
+        ''' Devuelve False si no hay que dibujar en este area. '''
         if not self.context:
             self.stop(True)
-        elif self.context.area != self.area:
+            return False
+        # Cada viewport llama al handler, solo dibujamos en el nuestro.
+        if bpy.context.area != self.area:
+            return False
+        if self.scene != bpy.context.scene:
             self.stop(True)
-        elif self.context.scene != bpy.context.scene:
+            return False
+        if self.context.workspace != self.workspace:
             self.stop(True)
-        elif self.context.workspace != self.workspace:
-            self.stop(True)
+            return False
+        return True
 
     def stop(self, forced=False):
         if hasattr(self, 'handler'):
@@ -76,9 +82,8 @@ class DrawContext:
             self.area.tag_redraw()
         else:
             self.on_error()
-        del self
 
     def draw(self):
-        self.check_context()
-        self.region.tag_redraw()
+        if not self.check_context():
+            return
         self.callback(self, self.data, self.args, self.kwargs)

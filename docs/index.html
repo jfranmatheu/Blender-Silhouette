@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Silhouette · Addon para Blender</title>
+  <meta name="description" content="Silhouette dibuja sobre el viewport de Blender la silueta de tu modelo para que veas si la forma se lee bien.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --bg-2: #141720;
+      --card: #191d28;
+      --line: #ffffff14;
+      --text: #e8eaf0;
+      --muted: #9aa1b2;
+      --accent: #ff8a2a;
+      --accent-2: #ffc061;
+      --green: #8fbf4a;
+      --red: #ea3751;
+      --blue: #2e85e8;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent-2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; display: block; }
+    code { font-family: "JetBrains Mono", monospace; font-size: .9em; background: #ffffff10; padding: .1em .4em; border-radius: 6px; }
+
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(14px);
+      background: #0d0f14cc;
+      border-bottom: 1px solid var(--line);
+    }
+    nav .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--text); font-size: 18px; }
+    .logo:hover { text-decoration: none; }
+    .logo span { font-size: 22px; }
+    nav ul { list-style: none; display: flex; gap: 22px; margin: 0 0 0 auto; padding: 0; }
+    nav ul a { color: var(--muted); font-size: 14px; font-weight: 500; }
+    nav ul a:hover { color: var(--text); text-decoration: none; }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; padding: 96px 0 72px; }
+    .hero::before {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(600px 300px at 80% 10%, #ff8a2a33, transparent 70%),
+        radial-gradient(500px 300px at 10% 90%, #2e85e822, transparent 70%),
+        linear-gradient(#ffffff08 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, #ffffff08 1px, transparent 1px) 0 0 / 40px 40px;
+      mask-image: linear-gradient(#000 60%, transparent);
+    }
+    .hero .wrap { position: relative; display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+    .pill {
+      display: inline-flex; gap: 8px; align-items: center;
+      font-size: 13px; font-weight: 600; color: var(--accent-2);
+      border: 1px solid #ff8a2a55; background: #ff8a2a14;
+      padding: 6px 14px; border-radius: 999px;
+    }
+    h1 { font-size: clamp(44px, 6vw, 76px); line-height: 1.02; letter-spacing: -.03em; margin: 22px 0 18px; }
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--accent-2), var(--accent));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lead { font-size: 19px; color: var(--muted); max-width: 520px; }
+    .cta { display: flex; gap: 14px; margin-top: 32px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 22px; border-radius: 12px; font-weight: 600; font-size: 15px;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { text-decoration: none; transform: translateY(-2px); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #1a0e00; box-shadow: 0 10px 30px #ff8a2a44; }
+    .btn-ghost { border: 1px solid var(--line); color: var(--text); background: #ffffff06; }
+    .meta { display: flex; gap: 22px; margin-top: 28px; color: var(--muted); font-size: 14px; }
+    .meta b { color: var(--text); }
+
+    .hero-card {
+      position: relative; border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: 0 40px 80px #00000080, 0 0 0 1px #ffffff08;
+      transform: perspective(1200px) rotateY(-8deg) rotateX(3deg);
+      transition: transform .4s;
+    }
+    .hero-card:hover { transform: none; }
+
+    /* Sections */
+    section { padding: 88px 0; }
+    section.alt { background: var(--bg-2); border-block: 1px solid var(--line); }
+    .eyebrow { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+    h2 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -.02em; line-height: 1.1; margin: 10px 0 14px; }
+    .sub { color: var(--muted); max-width: 640px; font-size: 17px; margin: 0 0 44px; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 26px; transition: border-color .2s, transform .2s;
+    }
+    .card:hover { border-color: #ff8a2a55; transform: translateY(-3px); }
+    .card .icon {
+      width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+      font-size: 22px; background: #ff8a2a1a; margin-bottom: 16px;
+    }
+    .card h3 { margin: 0 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+    .shot { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+    .shot + .caption { color: var(--muted); font-size: 14px; margin-top: 10px; text-align: center; }
+
+    /* Modes */
+    .modes { display: grid; grid-template-columns: 1fr 1.4fr; gap: 40px; align-items: start; }
+    .tabs { display: flex; flex-direction: column; gap: 12px; }
+    .tab {
+      text-align: left; cursor: pointer; font: inherit; color: inherit;
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px;
+      transition: border-color .2s, background .2s;
+    }
+    .tab h3 { margin: 0 0 4px; font-size: 17px; display: flex; gap: 10px; align-items: center; }
+    .tab p { margin: 0; color: var(--muted); font-size: 14px; }
+    .tab.active { border-color: var(--accent); background: #ff8a2a12; }
+    .panel-view { position: sticky; top: 90px; }
+    .panel-view .shot { display: none; }
+    .panel-view .shot.active { display: block; }
+
+    /* Swatches de vistas */
+    .views { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .view-chip { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; background: #ffffff0a; border: 1px solid var(--line); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    /* Tabla */
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+    td:first-child { font-weight: 600; white-space: nowrap; }
+    td { color: #cdd1db; }
+
+    /* Steps */
+    .steps { counter-reset: s; display: grid; gap: 16px; }
+    .step { counter-increment: s; display: flex; gap: 18px; align-items: flex-start; }
+    .step::before {
+      content: counter(s); flex: none; width: 36px; height: 36px; border-radius: 50%;
+      display: grid; place-items: center; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #1a0e00;
+    }
+    .step p { margin: 5px 0 0; }
+    .note {
+      border-left: 3px solid var(--accent); background: #ff8a2a10;
+      padding: 14px 18px; border-radius: 0 12px 12px 0; color: #e7d6c4; font-size: 15px; margin-top: 24px;
+    }
+
+    /* FAQ */
+    details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; margin-bottom: 12px; }
+    summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
+    summary::after { content: "+"; color: var(--accent); font-size: 20px; line-height: 1; }
+    details[open] summary::after { content: "–"; }
+    details p { color: var(--muted); margin: 12px 0 0; }
+
+    footer { padding: 48px 0; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+    footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+    @media (max-width: 860px) {
+      .hero .wrap, .modes, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .hero { padding-top: 56px; }
+      .hero-card { transform: none; }
+      nav ul { display: none; }
+      .panel-view { position: static; }
+      td:first-child { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#"><span>👻</span> Silhouette</a>
+    <ul>
+      <li><a href="#features">Funciones</a></li>
+      <li><a href="#modos">Modos</a></li>
+      <li><a href="#estilo">Estilo</a></li>
+      <li><a href="#instalar">Instalar</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="https://github.com/jfranmatheu/Blender-Silhouette">GitHub ↗</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="pill">✦ Nuevo · v2.2 para Blender 5.3</span>
+      <h1>La <em>silueta</em> de tu modelo, siempre a la vista.</h1>
+      <p class="lead">Una tarjeta en la esquina del viewport que te enseña la forma pura de tu malla, sin luces ni detalles. Así sabes al momento si se lee bien.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/jfranmatheu/Blender-Silhouette/releases/latest">⬇ Descargar</a>
+        <a class="btn btn-ghost" href="#instalar">Cómo instalarlo</a>
+      </div>
+      <div class="meta">
+        <span><b>Blender</b> 5.3+</span>
+        <span><b>GPU</b> Vulkan · OpenGL · Metal</span>
+        <span><b>Licencia</b> GPLv3</span>
+      </div>
+    </div>
+    <div class="hero-card">
+      <img src="images/overview.png" alt="Silhouette en el viewport de Blender">
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="eyebrow">Funciones</div>
+    <h2>Pequeño, rápido y a lo suyo.</h2>
+    <p class="sub">Nada de ventanas extra ni renders. Un botón en la cabecera del viewport y listo.</p>
+    <div class="grid-3">
+      <div class="card"><div class="icon">🧭</div><h3>Seis vistas fijas</h3><p>Frontal, trasera, laterales, superior e inferior, siempre encuadradas sobre tu modelo.</p></div>
+      <div class="card"><div class="icon">🎥</div><h3>Desde una cámara</h3><p>Usa la cámara activa de la escena, o la que tú elijas, y mira la silueta del plano final.</p></div>
+      <div class="card"><div class="icon">🛰️</div><h3>Tu vista, en vivo</h3><p>El modo Navigation copia el viewport tal cual y te sigue mientras navegas.</p></div>
+      <div class="card"><div class="icon">🎯</div><h3>Elige qué mirar</h3><p>Objeto activo, la selección, un objeto fijo o una colección entera.</p></div>
+      <div class="card"><div class="icon">🎨</div><h3>Estilo a tu gusto</h3><p>Color, fondo transparente, opacidad y el nombre de la vista en una esquina.</p></div>
+      <div class="card"><div class="icon">🗿</div><h3>Pensado para sculpt</h3><p>Toca la silueta para refrescarla o deja que se actualice sola cada pocos segundos.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="modos" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">Modos de vista</div>
+    <h2>Tres formas de mirar.</h2>
+    <p class="sub">Cambia de modo con los tres botones de arriba del panel. Pasa el ratón por cada uno para ver cómo queda.</p>
+    <div class="modes">
+      <div class="tabs">
+        <button class="tab active" data-shot="0">
+          <h3>📐 Preset</h3>
+          <p>Vistas ortográficas encuadradas automáticamente. Los botones de colores debajo de la tarjeta cambian entre frontal, lateral y superior.</p>
+          <div class="views">
+            <span class="view-chip"><span class="dot" style="background:var(--green)"></span> Front</span>
+            <span class="view-chip"><span class="dot" style="background:var(--red)"></span> Side</span>
+            <span class="view-chip"><span class="dot" style="background:var(--blue)"></span> Top</span>
+          </div>
+        </button>
+        <button class="tab" data-shot="1">
+          <h3>🎥 Camera</h3>
+          <p>La silueta vista desde una cámara. Por defecto usa la cámara activa de la escena, o la que tú elijas.</p>
+        </button>
+        <button class="tab" data-shot="2">
+          <h3>🛰️ Navigation</h3>
+          <p>Exactamente lo que ves en el viewport, con su mismo encuadre y perspectiva. Se actualiza sola al navegar o esculpir.</p>
+        </button>
+      </div>
+      <div class="panel-view">
+        <div class="shot active"><img src="images/overview.png" alt="Modo Preset"></div>
+        <div class="shot"><img src="images/camera.png" alt="Modo Camera" style="margin:auto;max-height:420px"></div>
+        <div class="shot"><img src="images/navigation.png" alt="Modo Navigation"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="estilo">
+  <div class="wrap">
+    <div class="eyebrow">Panel y estilo</div>
+    <h2>Todo en un solo panel.</h2>
+    <p class="sub">Pulsa la flechita junto al fantasma 👻 de la cabecera del viewport.</p>
+    <div class="grid-2" style="align-items:start">
+      <div>
+        <div class="shot" style="max-width:300px;margin:auto"><img src="images/panel.png" alt="Panel de Silhouette"></div>
+      </div>
+      <div>
+        <table>
+          <tr><th>Opción</th><th>Qué hace</th></tr>
+          <tr><td>Color</td><td>Color de la silueta.</td></tr>
+          <tr><td>Background</td><td>Apagado, el fondo es transparente y solo queda la forma.</td></tr>
+          <tr><td>View Name</td><td>Escribe FRONT, RIGHT… o el nombre de la cámara.</td></tr>
+          <tr><td>Opacity</td><td>Transparencia de toda la tarjeta.</td></tr>
+          <tr><td>Show in front</td><td>Por encima de objetos y rejilla. Activado por defecto.</td></tr>
+          <tr><td>Dimensions</td><td>Tamaño de la tarjeta, de 64 a 1024 px.</td></tr>
+          <tr><td>Viewport Proportions</td><td>En Navigation, misma proporción que el viewport con un solo valor de escala.</td></tr>
+        </table>
+        <div class="grid-2" style="margin-top:24px">
+          <div><div class="shot"><img src="images/preset_front.png" alt="Silueta frontal"></div><div class="caption">Opaca, vista frontal</div></div>
+          <div><div class="shot"><img src="images/style_transparent.png" alt="Silueta transparente"></div><div class="caption">Fondo transparente + nombre</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="instalar" class="alt">
+  <div class="wrap">
+    <div class="eyebrow">Instalación</div>
+    <h2>Listo en un minuto.</h2>
+    <p class="sub">Silhouette se instala como cualquier extensión de Blender.</p>
+    <div class="grid-2">
+      <div class="steps">
+        <div class="step"><div><b>Descarga el zip</b><p>Coge <code>silhouette_v2.2.0_blender-5.3.zip</code> de la <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases/latest">última release</a>.</p></div></div>
+        <div class="step"><div><b>Instálalo</b><p>Edit ▸ Preferences ▸ Get Extensions ▸ ⌄ ▸ <i>Install from Disk…</i> O arrastra el zip a la ventana de Blender.</p></div></div>
+        <div class="step"><div><b>Enciéndelo</b><p>Pulsa el fantasma 👻 en la cabecera del viewport 3D.</p></div></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="icon">🕰️</div>
+          <h3>¿Usas Blender 2.93?</h3>
+          <p>La 2.2 necesita Blender 5.3 o superior. Las versiones antiguas (2.0 y 2.1) siguen disponibles en la <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases">página de releases</a>.</p>
+        </div>
+        <div class="note">🗿 <b>En sculpt:</b> Blender no avisa de cada trazo, así que en Preset y Camera toca la silueta para refrescarla o activa <i>Auto-Update on Sculpt Mode</i>. Navigation siempre va al día.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap" style="max-width:820px">
+    <div class="eyebrow">FAQ</div>
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>No veo nada al activar el fantasma</summary><p>Necesitas una malla como objeto activo (o un objetivo válido en modo Preset). En modo Camera tienes que elegir una cámara.</p></details>
+    <details><summary>¿Qué objetos sirven de objetivo?</summary><p>Active Object, Selected Objects (encuadra todas las mallas seleccionadas), Fixed Object (uno concreto aunque cambies de selección) o Collection.</p></details>
+    <details><summary>¿Qué ha cambiado en la 2.2?</summary><p>Portado a Blender 5.3 sin <code>bgl</code>, shaders nuevos, Navigation usa la proyección real del viewport y la silueta se dibuja por encima de la geometría por defecto. La antigua vista en vivo desaparece porque Navigation ya hace lo mismo.</p></details>
+    <details><summary>¿Es gratis?</summary><p>Sí, es software libre bajo la licencia GNU GPL v3.</p></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>👻 Silhouette · hecho con cariño por <a href="https://github.com/jfranmatheu">@jfranmatheu</a></span>
+    <span><a href="https://github.com/jfranmatheu/Blender-Silhouette">GitHub</a> · <a href="https://github.com/jfranmatheu/Blender-Silhouette/blob/main/LICENSE.md">GPLv3</a></span>
+  </div>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const shots = document.querySelectorAll('.panel-view .shot');
+  const pick = (t) => {
+    tabs.forEach(x => x.classList.toggle('active', x === t));
+    shots.forEach((s, i) => s.classList.toggle('active', i == t.dataset.shot));
+  };
+  tabs.forEach(t => { t.addEventListener('mouseenter', () => pick(t)); t.addEventListener('click', () => pick(t)); });
+</script>
+</body>
+</html>

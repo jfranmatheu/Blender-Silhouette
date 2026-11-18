@@ -1,7 +1,6 @@
 from bpy.types import PropertyGroup, Object, Collection, Camera
 from bpy.props import *
 
-from . ctx import get_area_off
 
 
 VIEW_FRONT = 0
@@ -19,9 +18,26 @@ VIEW_3_4_BACK_LEFT = 10
 VIEW_3_4_BACK_RIGHT = 11
 
 
+# Blender no deja escribir en IDs (Scene...) mientras se dibuja o desde gizmos,
+# ni siquiera atributos Python, asi que los flags internos viven en un objeto aparte: 'rt'.
+class RuntimeFlags:
+    def __init__(self, **flags):
+        self.__dict__.update(flags)
+
+_runtime_flags = {}
+
+def runtime_flags(**defaults):
+    def getter(self):
+        key = self.as_pointer()
+        if key not in _runtime_flags:
+            _runtime_flags[key] = RuntimeFlags(**defaults)
+        return _runtime_flags[key]
+    return property(getter)
+
+
 class SILHOUETTE_STYLE(PropertyGroup):
     def mark_dirty(self, context):
-        self.dirty = True
+        self.rt.dirty = True
 
         #print("MARK DIRTY")
         #print("\t", context.area.type)
@@ -31,7 +47,7 @@ class SILHOUETTE_STYLE(PropertyGroup):
     use_viewport_settings : BoolProperty(default=False, name="Use Viewport Settings", update=mark_dirty)
 
     show_background : BoolProperty(default=True, name="Show Background", update=mark_dirty, description="When disabled, the background will be transparent")
-    show_in_front : BoolProperty(default=False, name="Show in front of geometry", description="Draws your silhouette in front of your geometry/objects")
+    show_in_front : BoolProperty(default=True, name="Show in front of geometry", description="Draws your silhouette in front of your geometry/objects")
 
     use_flat_style : BoolProperty(default=True, name="Use Flat Style")
     show_shadows : BoolProperty(default=False, name="Show Shadows")
@@ -42,18 +58,18 @@ class SILHOUETTE_STYLE(PropertyGroup):
     opacity : FloatProperty(default=1, max=1, min=0.01, step=0.1, name="Opacity", update=mark_dirty)
     text_color : FloatVectorProperty(default=(.9, .62, .12, 1), min=0, max=1, size=4, name="Text Color", subtype='COLOR')
 
-    dirty : BoolProperty(default=True)
+    rt = runtime_flags(dirty=True)
 
     show_view_name : BoolProperty(default=False, name="Show View Name", description="Show view name ONLY when using 'Preset' and 'Camera' view modes")
 
 
 class SILHOUETTE_SETTINGS(PropertyGroup):
     def mark_dirty(self, context):
-        self.dirty = True
+        self.rt.dirty = True
 
     def mark_off_dirty(self, context):
-        self.refresh_offscreen = True
-        #self.dirty = True
+        self.rt.refresh_offscreen = True
+        #self.rt.dirty = True
 
     def select_target(self, context):
         if not self.target_object:
@@ -106,10 +122,10 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
 
     def update_mode(self, context):
         if self.is_navigation():
-            self.refresh_offscreen = True
-        elif self.prev_view_mode == 'NAV':
-            self.refresh_offscreen = True
-        self.prev_view_mode = self.view_mode
+            self.rt.refresh_offscreen = True
+        elif self.rt.prev_view_mode == 'NAV':
+            self.rt.refresh_offscreen = True
+        self.rt.prev_view_mode = self.view_mode
         self.mark_dirty(context)
 
     view_mode : EnumProperty (
@@ -125,7 +141,6 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         update=update_mode
     )
 
-    prev_view_mode : StringProperty(default='PRESET')
 
     def is_preset(self): return self.view_mode == 'PRESET'
     def is_camera(self): return self.view_mode == 'CAMERA'
@@ -145,8 +160,7 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         name = "Scaling Mode"
     )
 
-    dirty : BoolProperty(default=False)
-    refresh_offscreen : BoolProperty(default=False)
+    rt = runtime_flags(dirty=False, refresh_offscreen=False, force_refresh=False, prev_view_mode='PRESET')
 
     view_preset : EnumProperty (
         items = (
@@ -169,7 +183,14 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         update=mark_dirty
     )
 
-    view_camera : PointerProperty(type=Object, name="View Camera", update=select_camera)
+    view_camera : PointerProperty(type=Object, name="View Camera", update=select_camera, poll=lambda self, ob: ob.type == 'CAMERA',
+                                  description="Camera to use. If empty, the active camera of the scene is used")
+
+    def get_camera(self, context):
+        # Si no se ha elegido ninguna, usamos la camara activa de la escena.
+        if self.view_camera:
+            return self.view_camera
+        return context.scene.camera
 
     use_multi_view : BoolProperty(default=False, name="Use Multi View", description="Toggle multi view silhouettes", update=mark_dirty)
 
@@ -193,37 +214,4 @@ class SILHOUETTE_SETTINGS(PropertyGroup):
         update=mark_dirty
     )
 
-    use_sculpt_auto_update : BoolProperty(default=False, name="Auto-Update on Sculpt Mode", description="Sculpt Mode doesn't register sculpting actions by itself (core bug since 2.82) so this is meant to solve that issue (tho you still can tap over the silhouette to manually update preview or use 'Navigation Live View' feature!)")
-    force_refresh : BoolProperty(default=False, name="Force Refresh")
-
-    ''' Live Navigation View Settings. '''
-    live_scale : FloatProperty(default=.5, min=0.2, max=1, step=0.05)
-
-    live_alignment : EnumProperty (
-        items=(
-            ('TOP_LEFT',        "Top-Left",     "Align silhouette to the top-left corner"),
-            ('TOP_RIGHT',       "Top-Right",    "Align silhouette to the top-right corner"),
-            ('BOTTOM_LEFT',     "Bottom-Left",  "Align silhouette to the bottom-left corner"),
-            ('BOTTOM_RIGHT',    "Bottom-Right", "Align silhouette to the bottom-right corner")
-        ), default='TOP_LEFT'
-    )
-
-    live_texid : IntProperty(default=-1)
-
-    def get_live_pos_size(self, context):
-        a = context.area
-        h = a.height * .5 * self.live_scale
-        w = a.width * .5 * self.live_scale
-        if self.live_alignment == 'TOP_LEFT':
-            x, y = get_area_off(a, {'TOOLS', 'TOOL_HEADER', 'HEADER'})
-            return x, y + a.height - h, w, h
-        elif self.live_alignment == 'TOP_RIGHT':
-            x, y = get_area_off(a, {'UI', 'TOOL_HEADER'})
-            return x + a.width - w, y + a.height - h, w, h
-        elif self.live_alignment == 'BOTTOM_LEFT':
-            x, y = get_area_off(a, {'TOOLS'})
-            return x, y, w, h # TODO: What if tool header position is flipped?
-        elif self.live_alignment == 'BOTTOM_RIGHT':
-            x, y = get_area_off(a, {'UI'})
-            return x + a.width - w, y, w, h
-        return 0, 0, 256, 256
+    use_sculpt_auto_update : BoolProperty(default=False, name="Auto-Update on Sculpt Mode", description="Sculpt Mode doesn't register sculpting actions by itself (core bug since 2.82) so this is meant to solve that issue (tho you still can tap over the silhouette to manually update preview or use 'Navigation' view mode!)")
