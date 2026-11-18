@@ -9,6 +9,16 @@
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-GPLv3-4f622f?style=for-the-badge" alt="GPLv3"></a>
 </p>
 
+<table align="center">
+  <tr>
+    <td align="center">
+      💛 <b>Silhouette is free and open source, made by an independent developer.</b><br>
+      If it helps your work, you can support its development by getting it on <b>SuperHive</b>.<br><br>
+      <a href="https://superhivemarket.com/products/silhouette"><img src="https://img.shields.io/badge/Support%20on-SuperHive-ff7a18?style=for-the-badge" alt="Support on SuperHive"></a>
+    </td>
+  </tr>
+</table>
+
 <p align="center">
   <b>Silhouette</b> draws a flat, detail-free view of your mesh on top of the viewport,<br>
   so you can tell at a glance whether the shape reads well from the front, the side or the top.
@@ -19,7 +29,8 @@
   <a href="#-what-it-does"><b>What it does</b></a> ·
   <a href="https://jfranmatheu.github.io/Blender-Silhouette/"><b>🌐 Website</b></a> ·
   <a href="DOCS.md"><b>Documentation</b></a> ·
-  <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases"><b>Downloads</b></a>
+  <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases"><b>Downloads</b></a> ·
+  <a href="https://superhivemarket.com/products/silhouette"><b>💛 SuperHive</b></a>
 </p>
 
 <br>

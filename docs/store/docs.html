@@ -1,0 +1,104 @@
+<div style="max-width:960px;margin:0 auto;font-family:Inter,'Segoe UI',Helvetica,Arial,sans-serif;line-height:1.6;">
+
+  <h1 style="font-size:36px;margin:0 0 8px;">📖 Silhouette · Documentation</h1>
+  <p style="font-size:17px;margin:0 0 20px;">Everything you need to get the most out of Silhouette for Blender 5.3+.</p>
+
+  <p style="font-size:15px;margin:0 0 32px;">
+    <a href="#install">Installation</a> ·
+    <a href="#turn-on">Turning it on</a> ·
+    <a href="#modes">View modes</a> ·
+    <a href="#target">Target</a> ·
+    <a href="#style">Style</a> ·
+    <a href="#sculpt">Sculpting</a> ·
+    <a href="#prefs">Preferences</a> ·
+    <a href="#faq">FAQ</a>
+  </p>
+
+  <h2 id="install" style="font-size:28px;margin:40px 0 12px;">1. Installation</h2>
+  <ol style="font-size:16px;padding-left:22px;margin:0 0 16px;">
+    <li>Download <code>silhouette_v2.2.0_blender-5.3.zip</code>. Don't unzip it.</li>
+    <li>In Blender: <b>Edit ▸ Preferences ▸ Get Extensions ▸ ⌄ ▸ Install from Disk…</b> and pick the zip, or drag it onto the Blender window.</li>
+    <li>Make sure it's enabled in <b>Preferences ▸ Add-ons</b>.</li>
+  </ol>
+  <p style="font-size:15px;margin:0 0 24px;padding:12px 16px;border-left:4px solid #ff7a18;background:rgba(255,122,24,0.08);border-radius:0 10px 10px 0;">
+    Silhouette 2.2 requires <b>Blender 5.3 or newer</b>.
+  </p>
+
+  <h2 id="turn-on" style="font-size:28px;margin:40px 0 12px;">2. Turning it on</h2>
+  <p style="font-size:16px;margin:0 0 12px;">On the right side of the 3D viewport header you'll find a <b>ghost 👻</b> and a small arrow:</p>
+  <table style="width:100%;border-collapse:collapse;font-size:16px;margin:0 0 16px;">
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);width:90px;text-align:center;">👻</td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Turns the silhouette on or off.</td></tr>
+    <tr><td style="padding:10px 12px;text-align:center;">⌄</td><td style="padding:10px 12px;">Opens the settings panel.</td></tr>
+  </table>
+  <p style="font-size:16px;margin:0 0 16px;">
+    A card appears in the bottom-left corner of the viewport. Below it there are three quick buttons:
+    🟢 <b>Front</b>, 🔴 <b>Side</b> and 🔵 <b>Top</b>.
+  </p>
+  <img src="https://jfranmatheu.github.io/Blender-Silhouette/images/overview.png" alt="Silhouette in the viewport" style="width:100%;border-radius:12px;display:block;margin:12px 0 24px;">
+
+  <h2 id="modes" style="font-size:28px;margin:40px 0 12px;">3. View modes</h2>
+  <p style="font-size:16px;margin:0 0 12px;">Pick the mode with the three buttons at the top of the panel.</p>
+  <table style="width:100%;border-collapse:collapse;font-size:16px;margin:0 0 16px;">
+    <tr><th style="text-align:left;padding:10px 12px;border-bottom:2px solid rgba(128,128,128,0.35);">Mode</th><th style="text-align:left;padding:10px 12px;border-bottom:2px solid rgba(128,128,128,0.35);">What you see</th><th style="text-align:left;padding:10px 12px;border-bottom:2px solid rgba(128,128,128,0.35);">Best for</th></tr>
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);"><b>Preset</b></td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Orthographic view, framed automatically around the target.</td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Checking the shape along the axes.</td></tr>
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);"><b>Camera</b></td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">The active scene camera by default, or the one you pick.</td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Keeping your final shot in sight.</td></tr>
+    <tr><td style="padding:10px 12px;"><b>Navigation</b></td><td style="padding:10px 12px;">Exactly your viewport, same framing and perspective.</td><td style="padding:10px 12px;">Working and sculpting while you move around.</td></tr>
+  </table>
+  <img src="https://jfranmatheu.github.io/Blender-Silhouette/store/images/modes.png" alt="View modes" style="width:100%;border-radius:12px;display:block;margin:12px 0 16px;">
+  <p style="font-size:16px;margin:0 0 8px;"><b>Transform options</b></p>
+  <ul style="font-size:16px;padding-left:22px;margin:0 0 24px;">
+    <li><b>Dimensions</b>: width and height of the card in pixels (64 to 1024).</li>
+    <li><b>Use Viewport Proportions</b> (Navigation only): the card follows the viewport's aspect ratio and you only set a <b>Scale</b>. With manual dimensions the model never gets stretched, you just see more or less space on the sides.</li>
+  </ul>
+
+  <h2 id="target" style="font-size:28px;margin:40px 0 12px;">4. Target</h2>
+  <p style="font-size:16px;margin:0 0 12px;"><i>Preset</i> mode only. Decides what gets framed:</p>
+  <ul style="font-size:16px;padding-left:22px;margin:0 0 16px;">
+    <li><b>Active Object</b>: the active object (default).</li>
+    <li><b>Selected Objects</b>: every selected mesh at once.</li>
+    <li><b>Fixed Object</b>: one specific object, even if you change the selection.</li>
+    <li><b>Collection</b>: every mesh in a collection.</li>
+  </ul>
+  <p style="font-size:15px;margin:0 0 24px;padding:12px 16px;border-left:4px solid #2e85e8;background:rgba(46,133,232,0.08);border-radius:0 10px 10px 0;">
+    💡 <b>Tip:</b> use <i>Fixed Object</i> or <i>Collection</i> when you're working on separate pieces of a character but still want to see the whole body.
+  </p>
+
+  <h2 id="style" style="font-size:28px;margin:40px 0 12px;">5. Style</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:16px;margin:0 0 16px;">
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);"><b>Color</b></td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Silhouette color.</td></tr>
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);"><b>Background</b></td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">When off, the background is transparent and only the shape stays. The color next to it is the background color.</td></tr>
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);"><b>View Name</b></td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Writes FRONT, RIGHT… or the camera name in the corner.</td></tr>
+    <tr><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);"><b>Opacity</b></td><td style="padding:10px 12px;border-bottom:1px solid rgba(128,128,128,0.25);">Transparency of the whole card.</td></tr>
+    <tr><td style="padding:10px 12px;"><b>Show in front of geometry</b></td><td style="padding:10px 12px;">Draws the card on top of objects and the grid. On by default.</td></tr>
+  </table>
+  <img src="https://jfranmatheu.github.io/Blender-Silhouette/store/images/panel_style.png" alt="Panel and style" style="width:100%;border-radius:12px;display:block;margin:12px 0 24px;">
+
+  <h2 id="sculpt" style="font-size:28px;margin:40px 0 12px;">6. Sculpting</h2>
+  <p style="font-size:16px;margin:0 0 12px;">
+    In Sculpt mode Blender doesn't report every stroke, so in <i>Preset</i> and <i>Camera</i> modes the card can't tell on its own that the mesh changed:
+  </p>
+  <ul style="font-size:16px;padding-left:22px;margin:0 0 24px;">
+    <li><b>Click the card</b> to refresh it. You'll see a <i>Tap to refresh!</i> hint.</li>
+    <li>Or enable <b>Auto-Update on Sculpt Mode</b> (in <i>Other Settings</i>) to refresh every 5 seconds. This option only shows in Preset and Camera.</li>
+    <li><b>Navigation</b> mode redraws along with the viewport, so it's always up to date.</li>
+  </ul>
+
+  <h2 id="prefs" style="font-size:28px;margin:40px 0 12px;">7. Preferences</h2>
+  <p style="font-size:16px;margin:0 0 24px;">
+    In <b>Edit ▸ Preferences ▸ Add-ons ▸ Silhouette</b> you can set the default silhouette style.
+  </p>
+
+  <h2 id="faq" style="font-size:28px;margin:40px 0 12px;">8. FAQ</h2>
+  <p style="font-size:16px;margin:0 0 6px;"><b>I don't see anything when I click the ghost.</b></p>
+  <p style="font-size:16px;margin:0 0 18px;">Make sure a mesh is the active object (or you have a valid target). In <i>Camera</i> mode the scene needs an active camera, or pick one in the panel.</p>
+  <p style="font-size:16px;margin:0 0 6px;"><b>The floor grid shows on top of the card.</b></p>
+  <p style="font-size:16px;margin:0 0 18px;">Enable <b>Show in front of geometry</b> in the style settings (it's on by default).</p>
+  <p style="font-size:16px;margin:0 0 6px;"><b>Does it work with Blender 4.x or older?</b></p>
+  <p style="font-size:16px;margin:0 0 18px;">Version 2.2 is made for Blender 5.3 and newer.</p>
+  <p style="font-size:16px;margin:0 0 6px;"><b>Something's not working.</b></p>
+  <p style="font-size:16px;margin:0 0 24px;">Send a message through SuperHive or open an issue on <a href="https://github.com/jfranmatheu/Blender-Silhouette/issues">GitHub</a>. Include your Blender version and OS.</p>
+
+  <p style="font-size:15px;margin:40px 0 0;text-align:center;opacity:0.75;">
+    Full guide with more screenshots: <a href="https://jfranmatheu.github.io/Blender-Silhouette/">jfranmatheu.github.io/Blender-Silhouette</a>
+  </p>
+</div>

@@ -5,6 +5,11 @@
 <h1 align="center">📖 Documentation</h1>
 
 <p align="center">
+  💛 Silhouette is free and made by an independent developer.<br>
+  You can support its development by getting it on <a href="https://superhivemarket.com/products/silhouette"><b>SuperHive</b></a>.
+</p>
+
+<p align="center">
   <a href="#1-turning-it-on">Turning it on</a> ·
   <a href="#2-the-panel">Panel</a> ·
   <a href="#3-view-modes">View modes</a> ·
