@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.svg" alt="Silhouette" width="100%">
+  <img src="docs/images/hero.jpg" alt="Silhouette" width="100%">
 </p>
 
 <h1 align="center">📖 Documentation</h1>
