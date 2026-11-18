@@ -2,59 +2,59 @@
   <img src="docs/images/banner.svg" alt="Silhouette" width="100%">
 </p>
 
-<h1 align="center">📖 Documentación</h1>
+<h1 align="center">📖 Documentation</h1>
 
 <p align="center">
-  <a href="#1-activar-silhouette">Activar</a> ·
-  <a href="#2-el-panel">Panel</a> ·
-  <a href="#3-modos-de-vista">Modos de vista</a> ·
-  <a href="#4-objetivo-target">Objetivo</a> ·
-  <a href="#5-estilo">Estilo</a> ·
-  <a href="#6-sculpt">Sculpt</a> ·
-  <a href="#7-preferencias">Preferencias</a> ·
-  <a href="#8-preguntas-frecuentes">FAQ</a>
+  <a href="#1-turning-it-on">Turning it on</a> ·
+  <a href="#2-the-panel">Panel</a> ·
+  <a href="#3-view-modes">View modes</a> ·
+  <a href="#4-target">Target</a> ·
+  <a href="#5-style">Style</a> ·
+  <a href="#6-sculpting">Sculpting</a> ·
+  <a href="#7-preferences">Preferences</a> ·
+  <a href="#8-faq">FAQ</a>
 </p>
 
 ---
 
-## 1. Activar Silhouette
+## 1. Turning it on
 
-En la cabecera del viewport 3D, a la derecha, aparece un **fantasma** 👻 y una pequeña flecha.
+On the right side of the 3D viewport header you'll find a **ghost** 👻 and a small arrow.
 
-| Control | Qué hace |
+| Control | What it does |
 |:---:|---|
-| 👻 | Enciende o apaga la silueta en el viewport. |
-| ⌄ | Abre el panel con todos los ajustes. |
+| 👻 | Turns the silhouette on or off in the viewport. |
+| ⌄ | Opens the panel with all the settings. |
 
-Con la silueta encendida verás una tarjeta en la esquina inferior izquierda del viewport:
+With the silhouette on, you'll see a card in the bottom-left corner of the viewport:
 
 <p align="center">
   <img src="docs/images/overview.png" width="90%">
 </p>
 
-Debajo de la tarjeta hay tres botones para cambiar rápido de vista:
+Below the card there are three buttons to quickly switch views:
 
 <table align="center">
   <tr>
-    <td align="center">🟢<br><b>Frontal</b></td>
-    <td align="center">🔴<br><b>Lateral</b> (derecha)</td>
-    <td align="center">🔵<br><b>Superior</b></td>
+    <td align="center">🟢<br><b>Front</b></td>
+    <td align="center">🔴<br><b>Side</b> (right)</td>
+    <td align="center">🔵<br><b>Top</b></td>
   </tr>
 </table>
 
 ---
 
-## 2. El panel
+## 2. The panel
 
 <table>
   <tr>
     <td width="40%" align="center"><img src="docs/images/panel.png" width="100%"></td>
     <td>
 
-- **Preset / Camera / Navigation**: el modo de vista ([ver abajo](#3-modos-de-vista)).
-- **Settings**: vista, objetivo y tamaño. Cambia según el modo.
-- **Style**: cómo se pinta la silueta.
-- **Other Settings**: auto-refresco en sculpt.
+- **Preset / Camera / Navigation**: the view mode ([see below](#3-view-modes)).
+- **Settings**: view, target and size. Changes depending on the mode.
+- **Style**: how the silhouette is drawn.
+- **Other Settings**: auto-refresh in sculpt mode (Preset and Camera only, Navigation doesn't need it).
 
 </td>
   </tr>
@@ -62,101 +62,101 @@ Debajo de la tarjeta hay tres botones para cambiar rápido de vista:
 
 ---
 
-## 3. Modos de vista
+## 3. View modes
 
-| Modo | Cómo se ve | Cuándo usarlo |
+| Mode | What you see | When to use it |
 |---|---|---|
-| **Preset** | Ortográfica, encuadrada automáticamente sobre el objetivo. | Comprobar la forma desde los ejes: Front, Back, Left, Right, Top, Bottom. |
-| **Camera** | Desde la cámara activa de la escena, o desde la que elijas. | Tener fija una vista concreta, por ejemplo la del plano final. |
-| **Navigation** | Exactamente tu vista del viewport, con su mismo encuadre y perspectiva. | Ver la silueta mientras navegas o esculpes. Se actualiza sola. |
+| **Preset** | Orthographic, automatically framed around the target. | Checking the shape along the axes: Front, Back, Left, Right, Top, Bottom. |
+| **Camera** | From the active scene camera, or from the one you pick. | Keeping a specific view fixed, like your final shot. |
+| **Navigation** | Exactly your viewport view, same framing and perspective. | Watching the silhouette while you navigate or sculpt. Updates on its own. |
 
 <table>
   <tr>
     <td align="center"><img src="docs/images/preset_front.png" width="260"><br><sub>Preset · Front</sub></td>
     <td align="center"><img src="docs/images/preset_right.png" width="260"><br><sub>Preset · Right</sub></td>
-    <td align="center"><img src="docs/images/camera.png" width="260"><br><sub>Camera · cámara de la escena</sub></td>
+    <td align="center"><img src="docs/images/camera.png" width="260"><br><sub>Camera · scene camera</sub></td>
   </tr>
 </table>
 
 <p align="center">
   <img src="docs/images/navigation.png" width="90%"><br>
-  <sub>Modo Navigation: la tarjeta muestra lo mismo que el viewport, en silueta.</sub>
+  <sub>Navigation mode: the card shows the same as the viewport, as a silhouette.</sub>
 </p>
 
 **Transform**
 
-- **Dimensions**: ancho y alto de la tarjeta en píxeles (de 64 a 1024).
-- En *Navigation* puedes marcar **Use Viewport Proportions** para que la tarjeta tenga la misma proporción que el viewport y ajustar solo la **Scale**. Si usas dimensiones manuales con otra proporción, el modelo no se deforma: simplemente se ve más o menos espacio por los lados.
+- **Dimensions**: width and height of the card in pixels (64 to 1024).
+- In *Navigation* you can enable **Use Viewport Proportions** so the card matches the viewport's aspect ratio and you only tweak the **Scale**. If you use manual dimensions with a different ratio, the model doesn't get stretched: you just see more or less space on the sides.
 
 ---
 
-## 4. Objetivo (Target)
+## 4. Target
 
-Solo en modo *Preset*. Decide qué se encuadra:
+*Preset* mode only. Decides what gets framed:
 
-| Tipo | Encuadra |
+| Type | Frames |
 |---|---|
-| **Active Object** | El objeto activo (por defecto). |
-| **Selected Objects** | Todas las mallas seleccionadas a la vez. |
-| **Fixed Object** | Un objeto concreto, aunque cambies de selección. |
-| **Collection** | Todas las mallas de una colección. |
+| **Active Object** | The active object (default). |
+| **Selected Objects** | Every selected mesh at once. |
+| **Fixed Object** | One specific object, even if you change the selection. |
+| **Collection** | Every mesh in a collection. |
 
 > [!TIP]
-> *Fixed Object* va muy bien cuando trabajas en piezas sueltas de un personaje pero quieres seguir viendo la silueta del cuerpo completo.
+> *Fixed Object* is great when you're working on separate pieces of a character but still want to see the silhouette of the whole body.
 
 ---
 
-## 5. Estilo
+## 5. Style
 
-| Opción | Efecto |
+| Option | Effect |
 |---|---|
-| **Color** | Color de la silueta. |
-| **Background** | Si está apagado, el fondo es transparente y solo se ve la forma. El color de al lado es el del fondo. |
-| **View Name** | Escribe el nombre de la vista (FRONT, RIGHT...) o de la cámara en la esquina. |
-| **Opacity** | Transparencia de toda la tarjeta. |
-| **Show in front of geometry** | Dibuja la silueta por encima de los objetos y la rejilla. Activado por defecto. |
+| **Color** | Silhouette color. |
+| **Background** | When off, the background is transparent and only the shape is visible. The color next to it is the background color. |
+| **View Name** | Writes the view name (FRONT, RIGHT...) or the camera name in the corner. |
+| **Opacity** | Transparency of the whole card. |
+| **Show in front of geometry** | Draws the silhouette on top of objects and the grid. On by default. |
 
 <p align="center">
   <img src="docs/images/style_transparent.png" width="280"><br>
-  <sub>Silueta naranja, fondo transparente y nombre de vista.</sub>
+  <sub>Orange silhouette, transparent background and view name.</sub>
 </p>
 
 ---
 
-## 6. Sculpt
+## 6. Sculpting
 
-En modo Sculpt Blender no avisa de cada trazo, así que la silueta de los modos *Preset* y *Camera* no se entera sola.
+In Sculpt mode Blender doesn't report every stroke, so the silhouette in *Preset* and *Camera* modes can't tell on its own that the mesh changed.
 
-- **Toca la silueta** con el ratón para refrescarla a mano. Verás el aviso *Tap to refresh!*.
-- O activa **Auto-Update on Sculpt Mode** para que se refresque cada 5 segundos.
-- El modo [Navigation](#3-modos-de-vista) se redibuja con el viewport, así que va siempre al día.
-
----
-
-## 7. Preferencias
-
-En **Edit ▸ Preferences ▸ Add-ons ▸ Silhouette** puedes definir el estilo por defecto de la silueta.
+- **Click the silhouette** to refresh it manually. You'll see the *Tap to refresh!* hint.
+- Or enable **Auto-Update on Sculpt Mode** to refresh it every 5 seconds. This option only shows up in Preset and Camera.
+- [Navigation](#3-view-modes) mode redraws along with the viewport, so it's always up to date.
 
 ---
 
-## 8. Preguntas frecuentes
+## 7. Preferences
+
+In **Edit ▸ Preferences ▸ Add-ons ▸ Silhouette** you can set the default silhouette style.
+
+---
+
+## 8. FAQ
 
 <details>
-<summary><b>No veo nada al activar el fantasma</b></summary>
+<summary><b>I don't see anything when I click the ghost</b></summary>
 
-Asegúrate de tener una malla como objeto activo (o un objetivo válido) y de estar en modo *Preset*. En modo *Camera* la escena necesita una cámara activa (o elige una en el panel).
+Make sure you have a mesh as the active object (or a valid target) and that you're in *Preset* mode. In *Camera* mode the scene needs an active camera (or pick one in the panel).
 </details>
 
 <details>
-<summary><b>La rejilla del suelo se ve por encima de la silueta</b></summary>
+<summary><b>The floor grid shows on top of the silhouette</b></summary>
 
-Activa **Show in front of geometry** en el estilo (viene activado por defecto).
+Enable **Show in front of geometry** in the style settings (it's on by default).
 </details>
 
 <details>
-<summary><b>¿Funciona en Blender 4.x o 2.93?</b></summary>
+<summary><b>Does it work in Blender 4.x or 2.93?</b></summary>
 
-La 2.2 está pensada para 5.3 en adelante. Para 2.93 descarga la release 2.1 desde la página de releases.
+2.2 is built for 5.3 and newer. For 2.93, grab the 2.1 release from the releases page.
 </details>
 
-<p align="center"><a href="README.md">⬅ Volver al README</a></p>
+<p align="center"><a href="README.md">⬅ Back to README</a></p>

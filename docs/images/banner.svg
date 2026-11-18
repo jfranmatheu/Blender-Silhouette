@@ -35,6 +35,6 @@
 
   <text x="80" y="150" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="88" font-weight="800" fill="#ffffff" letter-spacing="-2">Silhouette</text>
   <rect x="84" y="176" width="140" height="6" rx="3" fill="url(#accent)"/>
-  <text x="82" y="228" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" fill="#c9cdd6">Mira la silueta de tu modelo mientras trabajas.</text>
-  <text x="82" y="270" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" fill="#8a909c">Addon para Blender 5.3+ · v2.2.0 · GPLv3</text>
+  <text x="82" y="228" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" fill="#c9cdd6">See your model's silhouette while you work.</text>
+  <text x="82" y="270" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" fill="#8a909c">Add-on for Blender 5.3+ · v2.2.0 · GPLv3</text>
 </svg>

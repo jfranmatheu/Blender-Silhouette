@@ -6,88 +6,89 @@
   <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases/latest"><img src="https://img.shields.io/github/v/release/jfranmatheu/Blender-Silhouette?style=for-the-badge&color=ff7a18&label=release" alt="Release"></a>
   <img src="https://img.shields.io/badge/Blender-5.3%2B-ea7600?style=for-the-badge&logo=blender&logoColor=white" alt="Blender 5.3+">
   <img src="https://img.shields.io/badge/GPU-Vulkan%20%7C%20OpenGL%20%7C%20Metal-38506b?style=for-the-badge" alt="GPU backends">
-  <a href="LICENSE.md"><img src="https://img.shields.io/badge/licencia-GPLv3-4f622f?style=for-the-badge" alt="GPLv3"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-GPLv3-4f622f?style=for-the-badge" alt="GPLv3"></a>
 </p>
 
 <p align="center">
-  <b>Silhouette</b> dibuja encima del viewport una vista plana y sin detalles de tu malla,<br>
-  para que veas de un vistazo si la forma se lee bien desde delante, de lado o desde arriba.
+  <b>Silhouette</b> draws a flat, detail-free view of your mesh on top of the viewport,<br>
+  so you can tell at a glance whether the shape reads well from the front, the side or the top.
 </p>
 
 <p align="center">
-  <a href="#-instalación"><b>Instalación</b></a> ·
-  <a href="#-qué-hace"><b>Qué hace</b></a> ·
-  <a href="https://jfranmatheu.github.io/Blender-Silhouette/"><b>🌐 Web</b></a> ·
-  <a href="DOCS.md"><b>Documentación</b></a> ·
-  <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases"><b>Descargas</b></a>
+  <a href="#-installation"><b>Installation</b></a> ·
+  <a href="#-what-it-does"><b>What it does</b></a> ·
+  <a href="https://jfranmatheu.github.io/Blender-Silhouette/"><b>🌐 Website</b></a> ·
+  <a href="DOCS.md"><b>Documentation</b></a> ·
+  <a href="https://github.com/jfranmatheu/Blender-Silhouette/releases"><b>Downloads</b></a>
 </p>
 
 <br>
 
 <p align="center">
-  <img src="docs/images/overview.png" alt="Silhouette en el viewport de Blender 5.3" width="92%">
+  <img src="docs/images/overview.png" alt="Silhouette in the Blender 5.3 viewport" width="92%">
 </p>
 
 ---
 
-## ✨ Qué hace
+## ✨ What it does
 
 <table>
   <tr>
     <td width="33%" align="center">
       <img src="docs/images/preset_front.png" width="100%"><br>
-      <b>Vistas predefinidas</b><br>
-      <sub>Frontal, trasera, laterales, superior e inferior. Cambia entre ellas con los tres botones de colores.</sub>
+      <b>Preset views</b><br>
+      <sub>Front, back, left, right, top and bottom. Switch between them with the three colored buttons.</sub>
     </td>
     <td width="33%" align="center">
       <img src="docs/images/preset_right.png" width="100%"><br>
-      <b>Estilo a tu gusto</b><br>
-      <sub>Color, fondo transparente u opaco, opacidad y el nombre de la vista en una esquina.</sub>
+      <b>Your own style</b><br>
+      <sub>Color, transparent or solid background, opacity and the view name in a corner.</sub>
     </td>
     <td width="33%" align="center">
       <img src="docs/images/panel.png" width="100%"><br>
-      <b>Todo en un panel</b><br>
-      <sub>El botón del fantasma en la cabecera del viewport lo enciende y la flechita abre los ajustes.</sub>
+      <b>All in one panel</b><br>
+      <sub>The ghost button in the viewport header turns it on, and the little arrow opens the settings.</sub>
     </td>
   </tr>
 </table>
 
 <p align="center">
-  <img src="docs/images/navigation.png" alt="Modo Navigation" width="80%"><br>
-  <sub><b>Modo Navigation</b>: la silueta de lo que estás viendo, con el mismo encuadre que el viewport, siguiéndote mientras navegas o esculpes.</sub>
+  <img src="docs/images/navigation.png" alt="Navigation mode" width="80%"><br>
+  <sub><b>Navigation mode</b>: the silhouette of what you're looking at, framed exactly like the viewport, following you while you navigate or sculpt.</sub>
 </p>
 
 | | |
 |---|---|
-| 🎯 **Objetivos** | Objeto activo, objetos seleccionados, un objeto fijo o una colección entera. |
-| 🎥 **Modos de vista** | *Preset* (vistas ortográficas), *Camera* (la cámara de la escena u otra que elijas) y *Navigation* (tu vista del viewport tal cual). |
-| 🗿 **Sculpt** | Toca la silueta para refrescarla o activa el auto-refresco cada pocos segundos. |
-| ⚡ **Ligero** | Solo se vuelve a renderizar cuando cambia algo (posición, escala, rotación, malla...). |
+| 🎯 **Targets** | Active object, selected objects, a fixed object or a whole collection. |
+| 🎥 **View modes** | *Preset* (orthographic views), *Camera* (the scene camera or any camera you pick) and *Navigation* (your viewport view, as is). |
+| 🗿 **Sculpt** | Click the silhouette to refresh it, or turn on auto-refresh every few seconds. |
+| ⚡ **Lightweight** | It only re-renders when something changes (location, scale, rotation, mesh...). |
 
-## 📦 Instalación
+## 📦 Installation
 
 > [!IMPORTANT]
-> Esta versión necesita **Blender 5.3 o superior**. Para Blender 2.93 usa la [release 2.1](https://github.com/jfranmatheu/Blender-Silhouette/releases).
+> This version requires **Blender 5.3 or newer**. For Blender 2.93 use the [2.1 release](https://github.com/jfranmatheu/Blender-Silhouette/releases/tag/v2.1).
 
-1. Descarga `silhouette_v2.2.0_blender-5.3.zip` desde la [última release](https://github.com/jfranmatheu/Blender-Silhouette/releases/latest).
-2. En Blender: **Edit ▸ Preferences ▸ Get Extensions ▸ ⌄ ▸ Install from Disk...** y elige el zip (o arrástralo directamente a la ventana de Blender).
-3. Pulsa el icono 👻 en la cabecera del viewport 3D. Listo.
+1. Download `silhouette_v2.2.0_blender-5.3.zip` from the [latest release](https://github.com/jfranmatheu/Blender-Silhouette/releases/latest).
+2. In Blender: **Edit ▸ Preferences ▸ Get Extensions ▸ ⌄ ▸ Install from Disk...** and pick the zip (or just drag it onto the Blender window).
+3. Click the 👻 icon in the 3D viewport header. Done.
 
-## 📚 Documentación
+## 📚 Documentation
 
-Toda la explicación con capturas está en **[DOCS.md](DOCS.md)**: cada opción del panel, los modos de vista y los trucos para sculpt.
+The full guide with screenshots lives in **[DOCS.md](DOCS.md)** and on the **[website](https://jfranmatheu.github.io/Blender-Silhouette/)**: every panel option, the view modes and some sculpting tips.
 
-## 🛠️ Novedades de la 2.2
+## 🛠️ What's new in 2.2
 
-- Portado a **Blender 5.3**: fuera `bgl`, todo el dibujado va con el módulo `gpu`, así que funciona en Vulkan, OpenGL y Metal.
-- Shaders reescritos con `GPUShaderCreateInfo`.
-- El modo **Navigation** usa ahora la proyección real del viewport: se ve el modelo entero y con el mismo encuadre, sin recortes, y ya no hace falta tener una cámara en la escena.
-- Fuera la vista en vivo (beta): hacía lo mismo que Navigation, y el panel queda mucho más limpio.
-- La silueta se dibuja **por encima de la geometría** por defecto.
-- Empaquetado como **extensión** (`blender_manifest.toml`).
+- Ported to **Blender 5.3**: `bgl` is gone and all drawing goes through the `gpu` module, so it works on Vulkan, OpenGL and Metal.
+- Shaders rewritten with `GPUShaderCreateInfo`.
+- **Navigation** mode now uses the real viewport projection: you see the whole model with the same framing, no cropping, and the scene no longer needs a camera.
+- **Camera** mode uses the scene camera by default when you don't pick one.
+- The old live view (beta) is gone: it did the same as Navigation, and the panel is much cleaner now.
+- The silhouette is drawn **in front of the geometry** by default.
+- Packaged as an **extension** (`blender_manifest.toml`).
 
-## 📄 Licencia
+## 📄 License
 
-Silhouette es software libre bajo la **[GNU GPL v3](LICENSE.md)**.
+Silhouette is free software released under the **[GNU GPL v3](LICENSE.md)**.
 
-<p align="center"><sub>Hecho con cariño por <a href="https://github.com/jfranmatheu">@jfranmatheu</a></sub></p>
+<p align="center"><sub>Made with love by <a href="https://github.com/jfranmatheu">@jfranmatheu</a></sub></p>
